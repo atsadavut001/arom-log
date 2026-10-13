@@ -12,6 +12,9 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
   onClose,
   onInstallSuccess,
 }) => {
+  const isIosDevice = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const [activeOs, setActiveOs] = React.useState<'ios' | 'android'>(isIosDevice ? 'ios' : 'android');
+
   const handleTriggerInstall = async () => {
     if (deferredPrompt) {
       try {
@@ -29,7 +32,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-gray-100 space-y-5 relative">
+      <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-gray-100 space-y-4 relative">
         {/* Close Button */}
         <button
           type="button"
@@ -55,8 +58,34 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
           </p>
         </div>
 
-        {/* If Chrome prompt is ready, show One-Click Install Button */}
-        {deferredPrompt && (
+        {/* OS Selector Tabs */}
+        <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setActiveOs('ios')}
+            className={`flex-1 py-1.5 rounded-xl transition cursor-pointer ${
+              activeOs === 'ios'
+                ? 'bg-white text-gray-900 shadow-xs'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            🍎 iPhone / iPad
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveOs('android')}
+            className={`flex-1 py-1.5 rounded-xl transition cursor-pointer ${
+              activeOs === 'android'
+                ? 'bg-white text-gray-900 shadow-xs'
+                : 'text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            🤖 Android (Chrome)
+          </button>
+        </div>
+
+        {/* If Chrome prompt is ready, show One-Click Install Button on Android */}
+        {activeOs === 'android' && deferredPrompt && (
           <button
             type="button"
             onClick={handleTriggerInstall}
@@ -67,40 +96,76 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
           </button>
         )}
 
-        {/* Step-by-Step Guide for Chrome Mobile */}
-        <div className="bg-amber-50/60 rounded-2xl p-4 border border-amber-200/60 space-y-3">
-          <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
-            <Smartphone className="w-4 h-4 text-amber-600" />
-            <span>วิธีสร้างทางลัดบน Google Chrome (Android / Mobile):</span>
-          </div>
+        {/* Step-by-Step Guide */}
+        {activeOs === 'ios' ? (
+          <div className="bg-sky-50/70 rounded-2xl p-4 border border-sky-200/70 space-y-3">
+            <div className="flex items-center gap-2 text-sky-950 font-bold text-xs">
+              <Smartphone className="w-4 h-4 text-sky-600" />
+              <span>วิธีเพิ่มไปยังหน้าจอโฮมบน iPhone (ผ่าน Safari):</span>
+            </div>
 
-          <ol className="text-xs text-gray-700 space-y-2.5 pl-1">
-            <li className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                1
-              </span>
-              <span>
-                แตะที่ปุ่ม <strong>จุด 3 จุด (⋮)</strong> บริเวณมุมขวาบนของหน้าต่าง Chrome
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                2
-              </span>
-              <span>
-                เลือกเมนู <strong>&ldquo;ติดตั้งแอป&rdquo; (Install app)</strong> หรือ <strong>&ldquo;เพิ่มลงในหน้าจอหลัก&rdquo; (Add to Home screen)</strong>
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                3
-              </span>
-              <span>
-                กดยืนยัน <strong>&ldquo;ติดตั้ง&rdquo; (Install)</strong> — ไอคอนแอปจะไปอยู่ที่หน้าจอหลักทันที!
-              </span>
-            </li>
-          </ol>
-        </div>
+            <ol className="text-xs text-gray-700 space-y-2.5 pl-1">
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-sky-200 text-sky-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  1
+                </span>
+                <span>
+                  เปิดเว็บด้วย <strong>Safari</strong> แล้วแตะปุ่ม <strong>แชร์ (Share)</strong> ⬆️ ที่แถบเมนูด้านล่าง
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-sky-200 text-sky-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  2
+                </span>
+                <span>
+                  เลื่อนลงมาแล้วแตะที่เมนู <strong>&ldquo;เพิ่มไปยังหน้าจอโฮม&rdquo; (Add to Home Screen ➕)</strong>
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-sky-200 text-sky-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  3
+                </span>
+                <span>
+                  แตะ <strong>&ldquo;เพิ่ม&rdquo; (Add)</strong> มุมขวาบน — จะได้ไอคอน Arom Log บนหน้าจอโฮมทันที!
+                </span>
+              </li>
+            </ol>
+          </div>
+        ) : (
+          <div className="bg-amber-50/60 rounded-2xl p-4 border border-amber-200/60 space-y-3">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+              <Smartphone className="w-4 h-4 text-amber-600" />
+              <span>วิธีสร้างทางลัดบน Google Chrome (Android):</span>
+            </div>
+
+            <ol className="text-xs text-gray-700 space-y-2.5 pl-1">
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  1
+                </span>
+                <span>
+                  แตะที่ปุ่ม <strong>จุด 3 จุด (⋮)</strong> บริเวณมุมขวาบนของ Chrome
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  2
+                </span>
+                <span>
+                  เลือกเมนู <strong>&ldquo;ติดตั้งแอป&rdquo; (Install app)</strong> หรือ <strong>&ldquo;เพิ่มลงในหน้าจอหลัก&rdquo;</strong>
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  3
+                </span>
+                <span>
+                  กดยืนยัน <strong>&ldquo;ติดตั้ง&rdquo; (Install)</strong> — ไอคอนแอปจะไปอยู่ที่หน้าจอหลักทันที!
+                </span>
+              </li>
+            </ol>
+          </div>
+        )}
 
         {/* Benefits list */}
         <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-600">
