@@ -249,26 +249,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
       </div>
 
-      {/* Legend */}
-      {!hideLegend && (
-        <div className="pt-2">
-          <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-            สัญลักษณ์อารมณ์
-          </h4>
-          <div className="flex flex-wrap gap-2.5">
-            {MOOD_PRESETS.map((preset) => (
-              <div
-                key={preset.type}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-700"
-              >
-                <span>{preset.emoji}</span>
-                <span className="font-medium">{preset.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Entry Detail Modal when day clicked */}
       {activeEntryModal && (
         <div

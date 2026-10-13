@@ -7,7 +7,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
-  Heart
+  Heart,
+  Smartphone,
+  Droplets
 } from 'lucide-react';
 
 interface MoodJarProps {
@@ -29,8 +31,102 @@ export const MoodJar: React.FC<MoodJarProps> = ({
   const renderRef = useRef<Matter.Render | null>(null);
   const runnerRef = useRef<Matter.Runner | null>(null);
   const orbsMapRef = useRef<Map<number, MoodEntry>>(new Map());
+  const targetGravityRef = useRef<{ x: number; y: number }>({ x: 0, y: 1.1 });
 
   const [hoveredEntry, setHoveredEntry] = useState<MoodEntry | null>(null);
+  const [isGyroActive, setIsGyroActive] = useState<boolean>(false);
+  const [needsIosPermission, setNeedsIosPermission] = useState<boolean>(false);
+
+  // Setup mobile device orientation (Gyroscope tilt sensor - like water in a bottle)
+  useEffect(() => {
+    const isIos = typeof (DeviceOrientationEvent as any)?.requestPermission === 'function';
+    if (isIos) {
+      setNeedsIosPermission(true);
+    }
+
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      const { gamma, beta } = event;
+      if (gamma === null || beta === null) return;
+
+      // gamma: left-to-right tilt [-90, 90]
+      // beta: front-to-back tilt [-180, 180]
+      const clampedGamma = Math.max(-90, Math.min(90, gamma));
+      const clampedBeta = Math.max(-180, Math.min(180, beta));
+
+      // Left-to-right fluid gravity:
+      const gx = Math.sin((clampedGamma * Math.PI) / 180) * 1.6;
+
+      // Up-down fluid gravity:
+      let gy = Math.sin((clampedBeta * Math.PI) / 180) * 1.6;
+
+      // When flat on table (near 0, 0), settle down at bottom
+      if (Math.abs(gx) < 0.15 && Math.abs(gy) < 0.15) {
+        gy = 1.1;
+      }
+
+      targetGravityRef.current = { x: gx, y: gy };
+      setIsGyroActive(true);
+      setNeedsIosPermission(false);
+    };
+
+    if (!isIos && typeof window !== 'undefined' && 'DeviceOrientationEvent' in window) {
+      window.addEventListener('deviceorientation', handleOrientation, true);
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation, true);
+    };
+  }, []);
+
+  const requestOrientationPermission = async () => {
+    if (typeof (DeviceOrientationEvent as any)?.requestPermission === 'function') {
+      try {
+        const state = await (DeviceOrientationEvent as any).requestPermission();
+        if (state === 'granted') {
+          const handleOrientation = (event: DeviceOrientationEvent) => {
+            const { gamma, beta } = event;
+            if (gamma === null || beta === null) return;
+
+            const clampedGamma = Math.max(-90, Math.min(90, gamma));
+            const clampedBeta = Math.max(-180, Math.min(180, beta));
+            const gx = Math.sin((clampedGamma * Math.PI) / 180) * 1.6;
+            let gy = Math.sin((clampedBeta * Math.PI) / 180) * 1.6;
+
+            if (Math.abs(gx) < 0.15 && Math.abs(gy) < 0.15) {
+              gy = 1.1;
+            }
+
+            targetGravityRef.current = { x: gx, y: gy };
+            setIsGyroActive(true);
+            setNeedsIosPermission(false);
+          };
+
+          window.addEventListener('deviceorientation', handleOrientation, true);
+          setNeedsIosPermission(false);
+          setIsGyroActive(true);
+        }
+      } catch (err) {
+        console.warn('Gyro permission notice:', err);
+      }
+    }
+  };
+
+  // Mouse hover tilt interaction for desktop users
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isGyroActive) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xRatio = (e.clientX - rect.left) / rect.width;
+    const yRatio = (e.clientY - rect.top) / rect.height;
+
+    const gx = (xRatio - 0.5) * 2.2;
+    const gy = 0.5 + yRatio * 1.0;
+    targetGravityRef.current = { x: gx, y: gy };
+  };
+
+  const handleMouseLeave = () => {
+    if (isGyroActive) return;
+    targetGravityRef.current = { x: 0, y: 1.1 };
+  };
 
   // Filter entries for the selected month
   const monthEntries = entries.filter((e) => e.date.startsWith(selectedMonth));
@@ -143,6 +239,12 @@ export const MoodJar: React.FC<MoodJarProps> = ({
       render: { visible: false },
     });
 
+    // Smooth fluid lerp gravity towards target direction (Fluid water-bottle flow)
+    Events.on(engine, 'beforeUpdate', () => {
+      engine.gravity.x += (targetGravityRef.current.x - engine.gravity.x) * 0.15;
+      engine.gravity.y += (targetGravityRef.current.y - engine.gravity.y) * 0.15;
+    });
+
     Composite.add(engine.world, [ground, leftWall, rightWall, ceiling]);
 
     // Create mood balls (orbs)
@@ -155,14 +257,14 @@ export const MoodJar: React.FC<MoodJarProps> = ({
       const startY = jarTop + 20 + ((idx * 15) % 100);
 
       const orb = Bodies.circle(startX, startY, orbRadius, {
-        restitution: 0.6, // bouncy!
-        friction: 0.1,
-        frictionAir: 0.015,
+        restitution: 0.45, // Soft bouncy water-bead feel
+        friction: 0.02, // Low friction so they slide and tumble effortlessly like water
+        frictionAir: 0.012, // Smooth fluid glide
         density: 0.002,
         render: {
           fillStyle: entry.moodColor || '#F59E0B',
           strokeStyle: '#FFFFFF',
-          lineWidth: 3,
+          lineWidth: 2.5,
         },
       });
 
@@ -293,23 +395,44 @@ export const MoodJar: React.FC<MoodJarProps> = ({
         <div className="md:col-span-7 flex flex-col items-center w-full overflow-hidden">
           <div
             ref={containerRef}
-            className="relative w-[290px] xs:w-[320px] sm:w-[360px] h-[400px] sm:h-[450px] flex items-center justify-center transition-transform"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            onClick={requestOrientationPermission}
+            onTouchStart={requestOrientationPermission}
+            className="relative w-[290px] xs:w-[320px] sm:w-[360px] h-[400px] sm:h-[450px] flex items-center justify-center transition-transform cursor-pointer"
+            title="แตะหรือเอียงเพื่อให้น้องๆ ไหลไปมาเหมือนน้ำในขวด"
           >
-            {/* Glass Jar Outer SVG Aesthetic Frame */}
+            {/* Glass Jar Outer SVG Aesthetic Frame - 100% Crystal Clear (No Blur, No Milkiness) */}
             <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center">
               {/* Cork Lid */}
               <div className="w-36 sm:w-44 h-7 sm:h-8 bg-linear-to-b from-amber-700 to-amber-900 rounded-t-xl shadow-md border-b-2 border-amber-950/40 relative">
                 <div className="absolute inset-x-2 top-1 h-1 bg-amber-600/60 rounded-full" />
               </div>
-              {/* Jar Neck */}
-              <div className="w-44 sm:w-52 h-3.5 sm:h-4 bg-white/20 border-x-2 border-white/60 backdrop-blur-xs" />
-              {/* Jar Body Glass Container with reflection gradients */}
-              <div className="w-[260px] xs:w-[285px] sm:w-[310px] h-[320px] sm:h-[360px] rounded-b-[40px] sm:rounded-b-[45px] rounded-t-[18px] sm:rounded-t-[20px] border-4 border-white/80 bg-linear-to-b from-white/30 via-sky-50/20 to-sky-100/30 backdrop-blur-xs shadow-xl relative overflow-hidden">
-                {/* Glass light reflection highlights */}
-                <div className="absolute top-4 left-3 sm:left-4 w-2.5 sm:w-3.5 h-64 sm:h-72 bg-linear-to-b from-white/80 via-white/40 to-transparent rounded-full filter blur-[1px]" />
-                <div className="absolute top-8 right-3 sm:right-5 w-1.5 sm:w-2 h-40 sm:h-48 bg-linear-to-b from-white/60 to-transparent rounded-full filter blur-[1px]" />
-                {/* Bottom glass thickness curve */}
-                <div className="absolute bottom-0 inset-x-0 h-6 sm:h-7 bg-linear-to-t from-white/70 to-transparent rounded-b-[36px] sm:rounded-b-[40px]" />
+              {/* Jar Neck with subtle rim blur */}
+              <div className="w-44 sm:w-52 h-3.5 sm:h-4 bg-transparent border-x-2 border-slate-300/70 relative overflow-hidden">
+                <div className="absolute inset-y-0 left-0 w-2 bg-linear-to-r from-white/25 to-transparent backdrop-blur-[1.5px]" />
+                <div className="absolute inset-y-0 right-0 w-2 bg-linear-to-l from-white/25 to-transparent backdrop-blur-[1.5px]" />
+              </div>
+              {/* Jar Body: Crystal Clear Center with Soft Blurred Curved Glass Rim */}
+              <div className="w-[260px] xs:w-[285px] sm:w-[310px] h-[320px] sm:h-[360px] rounded-b-[40px] sm:rounded-b-[45px] rounded-t-[18px] sm:rounded-t-[20px] border-[3px] border-slate-300/70 bg-transparent shadow-lg shadow-sky-900/5 relative overflow-hidden ring-1 ring-inset ring-white/60">
+                {/* 1. Left Edge Curved Glass Blur */}
+                <div className="absolute inset-y-0 left-0 w-3.5 sm:w-4 bg-linear-to-r from-white/30 via-white/10 to-transparent backdrop-blur-[2px] rounded-bl-[40px] pointer-events-none" />
+
+                {/* 2. Right Edge Curved Glass Blur */}
+                <div className="absolute inset-y-0 right-0 w-3.5 sm:w-4 bg-linear-to-l from-white/30 via-white/10 to-transparent backdrop-blur-[2px] rounded-br-[40px] pointer-events-none" />
+
+                {/* 3. Bottom Rim Curved Glass Blur */}
+                <div className="absolute inset-x-0 bottom-0 h-4.5 sm:h-5 bg-linear-to-t from-white/35 via-white/10 to-transparent backdrop-blur-[2px] rounded-b-[38px] sm:rounded-b-[42px] pointer-events-none" />
+
+                {/* 4. Top Rim Subtle Blur */}
+                <div className="absolute inset-x-0 top-0 h-2 bg-linear-to-b from-white/20 to-transparent backdrop-blur-[1px] pointer-events-none" />
+
+                {/* Thin sharp glass light reflections on curved edge */}
+                <div className="absolute top-4 left-3 sm:left-4 w-1.5 sm:w-2 h-64 sm:h-72 bg-linear-to-b from-white/90 via-white/40 to-transparent rounded-full pointer-events-none" />
+                <div className="absolute top-10 left-5 sm:left-6 w-0.5 sm:w-1 h-32 sm:h-40 bg-linear-to-b from-white/70 via-white/20 to-transparent rounded-full pointer-events-none" />
+                <div className="absolute top-8 right-3 sm:right-4 w-1 sm:w-1.5 h-44 sm:h-52 bg-linear-to-b from-white/60 via-white/20 to-transparent rounded-full pointer-events-none" />
+                {/* Bottom glass curved rim */}
+                <div className="absolute bottom-0 inset-x-0 h-4 sm:h-5 border-b-[3px] border-slate-300/40 rounded-b-[36px] sm:rounded-b-[40px] pointer-events-none" />
               </div>
             </div>
 
@@ -320,11 +443,28 @@ export const MoodJar: React.FC<MoodJarProps> = ({
             />
           </div>
 
-          {/* Hint under jar */}
-          <div className="flex items-center gap-3 mt-4">
-            <span className="text-xs text-gray-400">
-              แตะหรือลากลูกแก้วเพื่อดูรายละเอียด
-            </span>
+          {/* Real-time Sensor & Interaction Status under jar */}
+          <div className="flex flex-col items-center gap-2 mt-4 text-center">
+            {isGyroActive ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold shadow-2xs">
+                <Droplets className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                <span>เซนเซอร์เอียงทำงานอยู่ — ลองเอียงโทรศัพท์ดูสิ! ลูกแก้วจะไหลตามเหมือนน้ำในขวด 🌊</span>
+              </span>
+            ) : needsIosPermission ? (
+              <button
+                type="button"
+                onClick={requestOrientationPermission}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold shadow-2xs cursor-pointer transition active:scale-95"
+              >
+                <Smartphone className="w-3.5 h-3.5 text-amber-700" />
+                <span>แตะที่นี่เพื่อเปิดเซนเซอร์เอียงโหล (iPhone) 📱</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Smartphone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                <span>เอียงโทรศัพท์เพื่อให้ลูกแก้วอารมณ์ไหลตามเหมือนน้ำในขวด หรือแตะลากลูกแก้วได้เลย 💧</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
-  Loader2
+  Loader2,
+  ChevronLeft
 } from 'lucide-react';
 
 interface DailyEntryFormProps {
@@ -23,6 +24,7 @@ interface DailyEntryFormProps {
   selectedDate: string;
   onDateChange: (date: string) => void;
   onEntrySaved: (savedEntry: MoodEntry) => void;
+  onBack?: () => void;
 }
 
 export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
@@ -31,6 +33,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
   selectedDate,
   onDateChange,
   onEntrySaved,
+  onBack,
 }) => {
   // Find if entry already exists for this date
   const existingEntry = entries.find((e) => e.date === selectedDate);
@@ -229,8 +232,23 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
   const isToday = selectedDate === todayStr;
 
   return (
-    <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 max-w-3xl mx-auto">
-      {/* Top Banner & Date Selector */}
+    <div className="max-w-3xl mx-auto space-y-3.5 animate-in fade-in pb-8">
+      {/* Back button to Calendar */}
+      {onBack && (
+        <div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-bold text-gray-700 bg-white hover:bg-amber-50 hover:text-amber-900 border border-gray-200 hover:border-amber-200 transition cursor-pointer shadow-2xs group"
+          >
+            <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-amber-600 group-hover:-translate-x-0.5 transition-transform" />
+            <span>กลับไปหน้าปฏิทิน</span>
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100">
+        {/* Top Banner & Date Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 sm:pb-6 border-b border-gray-100">
         <div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
@@ -428,12 +446,24 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
           </div>
         )}
 
-        {/* Submit Button */}
-        <div className="pt-2">
+        {/* Submit & Cancel Buttons */}
+        <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              disabled={isSaving}
+              className="py-3.5 px-5 rounded-2xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer sm:w-auto"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>ยกเลิก / กลับไปปฏิทิน</span>
+            </button>
+          )}
+
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full py-3.5 px-6 rounded-2xl font-bold text-white bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-99 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base disabled:opacity-50 cursor-pointer"
+            className="flex-1 py-3.5 px-6 rounded-2xl font-bold text-white bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-99 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base disabled:opacity-50 cursor-pointer"
           >
             {isSaving ? (
               <>
@@ -450,5 +480,6 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
         </div>
       </form>
     </div>
+  </div>
   );
 };

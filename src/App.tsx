@@ -414,6 +414,7 @@ export default function App() {
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
                 onEntrySaved={handleEntrySaved}
+                onBack={() => setCurrentTab('calendar')}
               />
             )}
 
