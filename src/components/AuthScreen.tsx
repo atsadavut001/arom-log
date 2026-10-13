@@ -28,9 +28,11 @@ export const AuthScreen: React.FC = () => {
       <div className="max-w-md w-full bg-white rounded-3xl p-5 sm:p-8 shadow-xl border border-amber-100 space-y-5 sm:space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 mx-auto rounded-3xl bg-linear-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-lg ring-4 ring-amber-100">
-            <span className="text-3xl">🫙</span>
-          </div>
+          <img
+            src="/arom-icon.png"
+            alt="Arom Log Logo"
+            className="w-16 h-16 mx-auto object-contain"
+          />
           <div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
               <Sparkles className="w-3.5 h-3.5 text-amber-600" />

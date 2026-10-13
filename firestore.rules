@@ -30,8 +30,8 @@ service cloud.firestore {
     // Privacy: read a user's profile and check the isPrivate flag
     // (default false when the field is missing, e.g. legacy docs)
     function isProfilePrivate(userId) {
-      let profile = get(/databases/$(database)/documents/users/$(userId)).data;
-      return get(profile, 'isPrivate', false) == true;
+      let path = /databases/$(database)/documents/users/$(userId);
+      return exists(path) && get(path).data.get('isPrivate', false) == true;
     }
 
     function isValidUserProfile(data) {
@@ -75,10 +75,10 @@ service cloud.firestore {
     // User Profile Document
     match /users/{userId} {
       // get: owner always, others only if the profile is not private
-      allow get: if isSignedIn() && (isOwner(userId) || isProfilePrivate(userId) == false);
+      allow get: if isSignedIn() && (isOwner(userId) || resource.data.get('isPrivate', false) == false);
       // list: signed-in users see only non-private profiles;
-      // Firestore requires the query to constrain this, e.g. where('isPrivate', '!=', true)
-      allow list: if isSignedIn() && get(resource.data, 'isPrivate', false) != true;
+      // Firestore requires the query to constrain this: where('isPrivate', '==', false)
+      allow list: if isSignedIn() && resource.data.isPrivate == false;
       allow create: if isOwner(userId) && isValidUserProfile(incoming());
       allow update: if isOwner(userId) && incoming().userId == existing().userId && isValidUserProfile(incoming());
       allow delete: if isOwner(userId);

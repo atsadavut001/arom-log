@@ -24,6 +24,7 @@ import { CommunityView } from './components/CommunityView.tsx';
 import { UserProfileView } from './components/UserProfileView.tsx';
 import { MiniGame } from './components/MiniGame.tsx';
 import { StreakRewardsModal } from './components/StreakRewardsModal.tsx';
+import { InstallPwaModal } from './components/InstallPwaModal.tsx';
 import { AuthScreen } from './components/AuthScreen.tsx';
 import { Loader2 } from 'lucide-react';
 
@@ -36,6 +37,18 @@ export default function App() {
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showGameModal, setShowGameModal] = useState(false);
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any | null>(null);
+
+  useEffect(() => {
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
 
   const todayStr = new Date().toISOString().split('T')[0];
   const currentMonthStr = todayStr.substring(0, 7);
@@ -374,6 +387,7 @@ export default function App() {
         onSelectTab={setCurrentTab}
         onOpenStreakModal={() => setShowStreakModal(true)}
         onOpenGameModal={() => setShowGameModal(true)}
+        onOpenInstallModal={() => setShowInstallModal(true)}
       />
 
       {/* Main Content Body */}
@@ -465,6 +479,15 @@ export default function App() {
         <MiniGame
           onClose={() => setShowGameModal(false)}
           onGameComplete={handleGameComplete}
+        />
+      )}
+
+      {/* PWA Install Modal */}
+      {showInstallModal && (
+        <InstallPwaModal
+          deferredPrompt={deferredPrompt}
+          onClose={() => setShowInstallModal(false)}
+          onInstallSuccess={() => setDeferredPrompt(null)}
         />
       )}
 

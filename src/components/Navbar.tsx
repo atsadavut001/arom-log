@@ -11,7 +11,8 @@ import {
   Users,
   User as UserIcon,
   Flame,
-  Gamepad2
+  Gamepad2,
+  Download
 } from 'lucide-react';
 
 export type TabType = 'calendar' | 'entry' | 'jar' | 'analytics' | 'community' | 'profile';
@@ -24,6 +25,7 @@ interface NavbarProps {
   onSelectTab: (tab: TabType) => void;
   onOpenStreakModal: () => void;
   onOpenGameModal: () => void;
+  onOpenInstallModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -34,6 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   onOpenStreakModal,
   onOpenGameModal,
+  onOpenInstallModal,
 }) => {
   const handleLogout = async () => {
     try {
@@ -129,9 +132,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => onSelectTab('calendar')}
               className="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-linear-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-2xs ring-2 ring-amber-100/80 shrink-0 group-hover:scale-105 transition-transform">
-                <span className="text-lg sm:text-xl">🫙</span>
-              </div>
+              <img
+                src="/arom-icon.png"
+                alt="Arom Log Logo"
+                className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 group-hover:scale-105 transition-transform object-contain"
+              />
               <div className="flex flex-col">
                 <h1 className="font-extrabold text-gray-900 text-sm sm:text-base leading-tight tracking-tight">
                   Arom Log
@@ -187,6 +192,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Gamepad2 className="w-4 h-4 text-indigo-600" />
                 <span className="hidden xl:inline text-xs">มินิเกม</span>
               </button>
+
+              {/* Install PWA App Button */}
+              {onOpenInstallModal && (
+                <button
+                  type="button"
+                  onClick={onOpenInstallModal}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 transition cursor-pointer active:scale-95 text-xs font-semibold shadow-2xs"
+                  title="ติดตั้งแอปบนมือถือ / สร้างทางลัด"
+                >
+                  <Download className="w-4 h-4 text-amber-600" />
+                  <span className="hidden lg:inline text-xs font-bold">ติดตั้งแอป</span>
+                </button>
+              )}
 
               {/* Subtle divider */}
               <div className="hidden sm:block w-px h-5 bg-gray-200/80 mx-0.5" />

@@ -49,31 +49,46 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'following'>('all');
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // 1. Fetch community users
   useEffect(() => {
     const fetchUsers = async () => {
       setLoadingUsers(true);
+      setFetchError(null);
+      const usersCol = collection(db, 'users');
+      const all: UserProfile[] = [];
+
       try {
-        // Firestore-level privacy: query excludes private profiles (isPrivate field must exist,
-        // it is written on profile creation and backfilled on login in App.tsx)
-        const usersSnapshot = await getDocs(
-          query(collection(db, 'users'), where('isPrivate', '!=', true))
+        try {
+          // Firestore-level privacy: query public profiles (isPrivate == false).
+          // Matches Firestore security rule: allow list: if resource.data.isPrivate == false
+          const usersSnapshot = await getDocs(
+            query(usersCol, where('isPrivate', '==', false))
+          );
+          usersSnapshot.forEach((docSnap) => {
+            all.push(docSnap.data() as UserProfile);
+          });
+        } catch {
+          // Fallback: if rules are unrestricted in development, fetch all and filter on client
+          const usersSnapshot = await getDocs(usersCol);
+          usersSnapshot.forEach((docSnap) => {
+            all.push(docSnap.data() as UserProfile);
+          });
+        }
+
+        // Private profiles are hidden entirely: invisible and unsearchable (self-blocked from others)
+        setUsersList(
+          all.filter((u) => u.userId && u.userId !== currentUser.uid && u.isPrivate !== true)
         );
-        const users: UserProfile[] = [];
-        usersSnapshot.forEach((docSnap) => {
-          const data = docSnap.data() as UserProfile;
-          // Private profiles are hidden entirely: invisible and unsearchable (self-blocked from others)
-          if (
-            data.userId &&
-            data.userId !== currentUser.uid
-          ) {
-            users.push(data);
-          }
-        });
-        setUsersList(users);
-      } catch (err) {
+      } catch (err: any) {
         console.warn('Community users fetch warning:', err);
+        setFetchError(
+          err?.code === 'permission-denied'
+            ? 'ไม่มีสิทธิ์อ่านรายชื่อเพื่อน — กรุณา Publish กฎ firestore.rules ที่ Firestore Console ก่อน'
+            : 'โหลดรายชื่อเพื่อนไม่สำเร็จ กรุณาลองใหม่ภายหลัง'
+        );
+        setUsersList([]);
       } finally {
         setLoadingUsers(false);
       }
@@ -223,6 +238,14 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
           />
         </div>
       </div>
+
+      {/* Fetch Error Banner */}
+      {fetchError && (
+        <div className="p-3.5 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-xs font-semibold flex items-center gap-2.5">
+          <span>⚠️</span>
+          <span>{fetchError}</span>
+        </div>
+      )}
 
       {/* Users Grid */}
       {loadingUsers ? (
