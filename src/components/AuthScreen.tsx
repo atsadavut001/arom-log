@@ -57,7 +57,7 @@ export const AuthScreen: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>โหลอารมณ์ฟิสิกส์ 2D เด้งดึ๋งและเขย่าได้ (Physics Jar)</span>
+            <span>โหลอารมณ์ฟิสิกส์ 2D เด้งดึ๋ง (Physics Jar)</span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />

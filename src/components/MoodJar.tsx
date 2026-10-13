@@ -3,7 +3,6 @@ import Matter from 'matter-js';
 import { MoodEntry, MOOD_PRESETS } from '../types.ts';
 import {
   Sparkles,
-  RefreshCw,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -32,7 +31,6 @@ export const MoodJar: React.FC<MoodJarProps> = ({
   const orbsMapRef = useRef<Map<number, MoodEntry>>(new Map());
 
   const [hoveredEntry, setHoveredEntry] = useState<MoodEntry | null>(null);
-  const [isShaking, setIsShaking] = useState(false);
 
   // Filter entries for the selected month
   const monthEntries = entries.filter((e) => e.date.startsWith(selectedMonth));
@@ -247,24 +245,6 @@ export const MoodJar: React.FC<MoodJarProps> = ({
     };
   }, [selectedMonth, monthEntries.length]);
 
-  // Shake Jar function: applies randomized impulses to all orbs
-  const handleShakeJar = () => {
-    if (!engineRef.current || monthEntries.length === 0) return;
-    setIsShaking(true);
-
-    const bodies = Matter.Composite.allBodies(engineRef.current.world).filter(
-      (b: Matter.Body) => !b.isStatic
-    );
-
-    bodies.forEach((orb: Matter.Body) => {
-      const forceX = (Math.random() - 0.5) * 0.08;
-      const forceY = -0.05 - Math.random() * 0.08; // upward burst
-      Matter.Body.applyForce(orb, orb.position, { x: forceX, y: forceY });
-    });
-
-    setTimeout(() => setIsShaking(false), 800);
-  };
-
   return (
     <div className="bg-white rounded-3xl p-5 md:p-8 shadow-sm border border-gray-100 max-w-4xl mx-auto">
       {/* Header and Month Controls */}
@@ -313,9 +293,7 @@ export const MoodJar: React.FC<MoodJarProps> = ({
         <div className="md:col-span-7 flex flex-col items-center w-full overflow-hidden">
           <div
             ref={containerRef}
-            className={`relative w-[290px] xs:w-[320px] sm:w-[360px] h-[400px] sm:h-[450px] flex items-center justify-center transition-transform ${
-              isShaking ? 'animate-bounce' : ''
-            }`}
+            className="relative w-[290px] xs:w-[320px] sm:w-[360px] h-[400px] sm:h-[450px] flex items-center justify-center transition-transform"
           >
             {/* Glass Jar Outer SVG Aesthetic Frame */}
             <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center">
@@ -342,17 +320,8 @@ export const MoodJar: React.FC<MoodJarProps> = ({
             />
           </div>
 
-          {/* Action buttons under jar */}
+          {/* Hint under jar */}
           <div className="flex items-center gap-3 mt-4">
-            <button
-              type="button"
-              onClick={handleShakeJar}
-              disabled={monthEntries.length === 0}
-              className="px-5 py-2.5 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs md:text-sm flex items-center gap-2 shadow-xs hover:shadow-md transition active:scale-95 disabled:opacity-40 cursor-pointer"
-            >
-              <RefreshCw className={`w-4 h-4 ${isShaking ? 'animate-spin' : ''}`} />
-              เขย่าโหลอารมณ์ (Shake Jar)
-            </button>
             <span className="text-xs text-gray-400">
               แตะหรือลากลูกแก้วเพื่อดูรายละเอียด
             </span>
