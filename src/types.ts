@@ -282,6 +282,7 @@ export interface UserProfile {
   avatarBg?: string; // Hex background color for avatar e.g. #FEF3C7
   handle?: string; // Search handle e.g. happy_cat without @ or with @
   bio?: string;
+  isPrivate?: boolean; // When true, profile is hidden from other users in Social (invisible / unsearchable)
   streak?: number;
   longestStreak?: number;
   lastActiveDate?: string;

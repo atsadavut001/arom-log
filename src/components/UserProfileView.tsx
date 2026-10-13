@@ -35,7 +35,9 @@ import {
   Tag,
   AtSign,
   ShieldCheck,
-  Award
+  Award,
+  Lock,
+  Users
 } from 'lucide-react';
 
 interface UserProfileViewProps {
@@ -114,6 +116,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     userProfile.handle ? userProfile.handle.replace(/^@/, '') : userProfile.userId.substring(0, 8)
   );
   const [editBio, setEditBio] = useState<string>(userProfile.bio || '');
+  const [editIsPrivate, setEditIsPrivate] = useState<boolean>(userProfile.isPrivate === true);
   const [isSavingProfile, setIsSavingProfile] = useState<boolean>(false);
   const [copiedHandle, setCopiedHandle] = useState<boolean>(false);
   const [handleError, setHandleError] = useState<string>('');
@@ -272,6 +275,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         avatarBg: editAvatarBg,
         handle: cleanHandle,
         bio: editBio.trim(),
+        isPrivate: editIsPrivate,
         updatedAt: nowIso,
       };
 
@@ -371,6 +375,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   {isOwnProfile && (
                     <span className="px-2 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-bold rounded-full border border-amber-200">
                       คุณ
+                    </span>
+                  )}
+                  {userProfile.isPrivate === true && (
+                    <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] font-bold rounded-full">
+                      <Lock className="w-2.5 h-2.5 fill-white text-white" />
+                      ส่วนตัว
                     </span>
                   )}
                 </div>
@@ -853,6 +863,57 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   placeholder="เช่น กำลังฝึกมองหาความสุขเล็กๆ ในแต่ละวัน..."
                   className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500/50 bg-white resize-none"
                 />
+              </div>
+
+              {/* 6. Private profile toggle: hide from all other users in Social */}
+              <div
+                onClick={() => setEditIsPrivate(!editIsPrivate)}
+                className={`p-3.5 rounded-2xl border-2 flex items-center justify-between gap-3 transition cursor-pointer select-none ${
+                  editIsPrivate ? 'bg-gray-800 border-gray-800' : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                      editIsPrivate ? 'bg-white/10' : 'bg-gray-200'
+                    }`}
+                  >
+                    {editIsPrivate ? (
+                      <Lock className="w-5 h-5 text-white" />
+                    ) : (
+                      <Users className="w-5 h-5 text-gray-600" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      className={`text-xs font-bold ${
+                        editIsPrivate ? 'text-white' : 'text-gray-800'
+                      }`}
+                    >
+                      โปรไฟล์เป็นส่วนตัว
+                    </p>
+                    <p
+                      className={`text-[11px] mt-0.5 ${
+                        editIsPrivate ? 'text-gray-300' : 'text-gray-500'
+                      }`}
+                    >
+                      เปิด: คนอื่นจะไม่เห็นและค้นหาคุณไม่พบใน Social เหมือนบล็อคตัวเองจากคนอื่น — ปิด: แสดงปกติ
+                    </p>
+                  </div>
+                </div>
+
+                {/* Toggle Switch */}
+                <span
+                  className={`relative inline-flex shrink-0 w-11 h-6 rounded-full transition-colors ${
+                    editIsPrivate ? 'bg-amber-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+                      editIsPrivate ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </span>
               </div>
 
               {/* Action Buttons */}

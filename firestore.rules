@@ -27,9 +27,16 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Privacy: read a user's profile and check the isPrivate flag
+    // (default false when the field is missing, e.g. legacy docs)
+    function isProfilePrivate(userId) {
+      let profile = get(/databases/$(database)/documents/users/$(userId)).data;
+      return get(profile, 'isPrivate', false) == true;
+    }
+
     function isValidUserProfile(data) {
       return data.keys().hasAll(['userId', 'displayName', 'email', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['userId', 'displayName', 'email', 'photoURL', 'avatarEmoji', 'avatarBg', 'handle', 'bio', 'streak', 'longestStreak', 'lastActiveDate', 'badges', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'displayName', 'email', 'photoURL', 'avatarEmoji', 'avatarBg', 'handle', 'bio', 'isPrivate', 'streak', 'longestStreak', 'lastActiveDate', 'badges', 'createdAt', 'updatedAt'])
         && data.userId is string && data.userId == request.auth.uid
         && data.displayName is string && data.displayName.size() <= 100
         && data.email is string && data.email.size() <= 150
@@ -38,6 +45,7 @@ service cloud.firestore {
         && (!('avatarBg' in data) || (data.avatarBg is string && data.avatarBg.size() <= 32))
         && (!('handle' in data) || (data.handle is string && data.handle.size() <= 64))
         && (!('bio' in data) || (data.bio is string && data.bio.size() <= 200))
+        && (!('isPrivate' in data) || data.isPrivate is bool)
         && (!('streak' in data) || data.streak is number)
         && (!('longestStreak' in data) || data.longestStreak is number)
         && (!('lastActiveDate' in data) || (data.lastActiveDate is string && data.lastActiveDate.size() <= 10))
@@ -66,7 +74,11 @@ service cloud.firestore {
 
     // User Profile Document
     match /users/{userId} {
-      allow get, list: if isSignedIn();
+      // get: owner always, others only if the profile is not private
+      allow get: if isSignedIn() && (isOwner(userId) || isProfilePrivate(userId) == false);
+      // list: signed-in users see only non-private profiles;
+      // Firestore requires the query to constrain this, e.g. where('isPrivate', '!=', true)
+      allow list: if isSignedIn() && get(resource.data, 'isPrivate', false) != true;
       allow create: if isOwner(userId) && isValidUserProfile(incoming());
       allow update: if isOwner(userId) && incoming().userId == existing().userId && isValidUserProfile(incoming());
       allow delete: if isOwner(userId);
@@ -79,7 +91,8 @@ service cloud.firestore {
 
       // User's Daily Mood Entries Subcollection
       match /entries/{entryId} {
-        allow get, list: if isSignedIn();
+        // Read: owner always; others only if the parent profile is not private
+        allow get, list: if isOwner(userId) || (isSignedIn() && isProfilePrivate(userId) == false);
         allow create: if isOwner(userId)
           && isValidId(entryId)
           && incoming().id == entryId
@@ -93,8 +106,9 @@ service cloud.firestore {
             && incoming().date == existing().date
             && isValidMoodEntry(incoming()))
           ||
-          // Social Heart/Like update by other signed-in users
+          // Social Heart/Like update by other signed-in users (only on public profiles)
           (isSignedIn()
+            && isProfilePrivate(userId) == false
             && incoming().diff(existing()).affectedKeys().hasOnly(['likes', 'likesCount'])
             && incoming().likes is list
             && incoming().likes.size() <= 500

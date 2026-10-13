@@ -87,6 +87,7 @@ export default function App() {
               avatarBg: '#FEF3C7',
               handle: defaultHandle,
               bio: 'กำลังดูแลสุขภาพใจและบันทึกอารมณ์ในทุกๆ วัน 🌱',
+              isPrivate: false,
               streak: 0,
               longestStreak: 0,
               badges: [],
@@ -101,12 +102,14 @@ export default function App() {
               setUnlockedBadges(existingData.badges);
             }
             // Ensure avatar and handle exist if legacy user
+            // (also backfill isPrivate so Social queries can find this profile)
             const patch: Partial<UserProfile> = {
               displayName: existingData.displayName || cleanName,
               email: user.email || existingData.email || '',
               avatarEmoji: existingData.avatarEmoji || '😊',
               avatarBg: existingData.avatarBg || '#FEF3C7',
               handle: existingData.handle || defaultHandle,
+              isPrivate: existingData.isPrivate === true,
               updatedAt: nowIso,
             };
             await setDoc(userDocRef, patch, { merge: true });

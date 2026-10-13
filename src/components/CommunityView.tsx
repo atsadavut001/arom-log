@@ -6,7 +6,9 @@ import {
   getDocs,
   setDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  query,
+  where
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
 import { UserProfile } from '../types.ts';
@@ -53,11 +55,19 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
     const fetchUsers = async () => {
       setLoadingUsers(true);
       try {
-        const usersSnapshot = await getDocs(collection(db, 'users'));
+        // Firestore-level privacy: query excludes private profiles (isPrivate field must exist,
+        // it is written on profile creation and backfilled on login in App.tsx)
+        const usersSnapshot = await getDocs(
+          query(collection(db, 'users'), where('isPrivate', '!=', true))
+        );
         const users: UserProfile[] = [];
         usersSnapshot.forEach((docSnap) => {
           const data = docSnap.data() as UserProfile;
-          if (data.userId && data.userId !== currentUser.uid) {
+          // Private profiles are hidden entirely: invisible and unsearchable (self-blocked from others)
+          if (
+            data.userId &&
+            data.userId !== currentUser.uid
+          ) {
             users.push(data);
           }
         });
