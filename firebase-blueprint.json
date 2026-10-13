@@ -1,0 +1,200 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information synchronized from Google Auth with Duolingo-style streak and badges",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique identifier of the user",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name of the user",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user",
+          "maxLength": 150
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar photo URL of the user",
+          "maxLength": 1024
+        },
+        "avatarEmoji": {
+          "type": "string",
+          "description": "Avatar emoji character for anonymous privacy-friendly avatar",
+          "maxLength": 32
+        },
+        "avatarBg": {
+          "type": "string",
+          "description": "Hex background color for avatar emoji badge",
+          "maxLength": 32
+        },
+        "handle": {
+          "type": "string",
+          "description": "Unique username handle (@ID) used for searching and adding friends",
+          "maxLength": 64
+        },
+        "bio": {
+          "type": "string",
+          "description": "Short bio or motto",
+          "maxLength": 200
+        },
+        "streak": {
+          "type": "number",
+          "description": "Current consecutive days recording streak"
+        },
+        "longestStreak": {
+          "type": "number",
+          "description": "Longest consecutive days streak ever achieved"
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "Last recorded mood entry date in YYYY-MM-DD",
+          "maxLength": 10
+        },
+        "badges": {
+          "type": "array",
+          "description": "List of unlocked badge identifiers"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account initialization timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["userId", "displayName", "email", "createdAt", "updatedAt"]
+    },
+    "MoodEntry": {
+      "title": "MoodEntry",
+      "description": "Daily mood entry logged by the user with tags, note, drawing, and photo, plus social likes",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier of the mood entry, typically date YYYY-MM-DD",
+          "maxLength": 64
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the user who owns this entry",
+          "maxLength": 128
+        },
+        "date": {
+          "type": "string",
+          "description": "Date in YYYY-MM-DD format",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "maxLength": 10
+        },
+        "moodType": {
+          "type": "string",
+          "description": "Type of mood e.g. happy, calm, excited, sad, angry, anxious, custom",
+          "maxLength": 32
+        },
+        "moodLabel": {
+          "type": "string",
+          "description": "Localized label of the mood",
+          "maxLength": 64
+        },
+        "moodScore": {
+          "type": "number",
+          "description": "Numeric sentiment rating from 0 (very negative) to 10 (very positive)"
+        },
+        "moodColor": {
+          "type": "string",
+          "description": "Color associated with the mood in HEX format",
+          "maxLength": 16
+        },
+        "customDrawing": {
+          "type": "string",
+          "description": "Canvas drawing data URL or empty string",
+          "maxLength": 200000
+        },
+        "tags": {
+          "type": "array",
+          "description": "Activity context tags associated with the entry"
+        },
+        "note": {
+          "type": "string",
+          "description": "Journal note for the day",
+          "maxLength": 2000
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL or data URL of the uploaded daily photo",
+          "maxLength": 500000
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Whether this post is visible to followers in the community"
+        },
+        "likes": {
+          "type": "array",
+          "description": "List of user IDs who gave hearts to this post"
+        },
+        "likesCount": {
+          "type": "number",
+          "description": "Count of hearts given to this post"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["id", "userId", "date", "moodType", "moodLabel", "moodScore", "moodColor", "tags", "note", "createdAt", "updatedAt"]
+    },
+    "FollowRelation": {
+      "title": "FollowRelation",
+      "description": "Record of a user following another user",
+      "type": "object",
+      "properties": {
+        "followerId": {
+          "type": "string",
+          "description": "UID of the user following",
+          "maxLength": 128
+        },
+        "followedUserId": {
+          "type": "string",
+          "description": "UID of the user being followed",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Follow timestamp"
+        }
+      },
+      "required": ["followerId", "followedUserId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores individual user profile and streak statistics"
+    },
+    "/users/{userId}/entries/{entryId}": {
+      "schema": "MoodEntry",
+      "description": "Stores user daily mood entries"
+    },
+    "/users/{userId}/following/{targetUserId}": {
+      "schema": "FollowRelation",
+      "description": "Stores users followed by this user"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Daily Mood Journal & Mood Jar",
+  "description": "เว็บแอปบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ ขวดโหลอารมณ์ฟิสิกส์ (Mood Jar) ปฏิทินอารมณ์ และบทวิเคราะห์สุขภาพจิตใจ",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
