@@ -1,0 +1,10 @@
+# robots.txt — Arom Log
+# https://developer.mozilla.org/en-US/docs/Glossary/Robots.txt
+
+User-agent: *
+Allow: /
+
+# Never index private/staging builds if you add them later, e.g.:
+# Disallow: /staging/
+
+Sitemap: https://arom-log.vercel.app/sitemap.xml

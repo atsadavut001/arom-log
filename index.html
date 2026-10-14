@@ -1,14 +1,38 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arom Log</title>
-    <meta name="description" content="Arom Log — เว็บแอปบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ ขวดโหลอารมณ์ฟิสิกส์ (Mood Jar) ปฏิทินอารมณ์ และบทวิเคราะห์สุขภาพจิตใจ" />
-    <meta property="og:title" content="Arom Log" />
-    <meta property="og:description" content="Arom Log — เว็บแอปบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ ขวดโหลอารมณ์ฟิสิกส์ (Mood Jar) ปฏิทินอารมณ์ และบทวิเคราะห์สุขภาพจิตใจ" />
+
+    <!-- Primary SEO -->
+    <title>Arom Log — บันทึกอารมณ์ประจำวัน ขวดโหลอารมณ์ ปฏิทินอารมณ์ | ดูแลสุขภาพใจ</title>
+    <meta name="description" content="Arom Log — เว็บแอปบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ เก็บอารมณ์ในขวดโหลฟิสิกส์ (Mood Jar) ดูปฏิทินอารมณ์และบทวิเคราะห์สุขภาพจิตใจ ใช้ฟรี เข้าสู่ระบบด้วย Google บัญชีเดียว" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="author" content="Arom Log" />
+
+    <!-- Owner verification for Google Search Console -->
+    <meta name="google-site-verification" content="zvkPZCltn0uA1JtKBB6kjcyzvKs0g63asbPj5u-0B7k" />
+    <link rel="canonical" href="https://arom-log.vercel.app/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Arom Log — บันทึกอารมณ์ประจำวัน ขวดโหลอารมณ์ ปฏิทินอารมณ์" />
+    <meta property="og:description" content="เว็บแอปบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ ขวดโหลอารมณ์ฟิสิกส์ (Mood Jar) ปฏิทินอารมณ์ และบทวิเคราะห์สุขภาพจิตใจ" />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://arom-log.vercel.app/" />
+    <meta property="og:site_name" content="Arom Log" />
+    <meta property="og:locale" content="th_TH" />
+    <meta property="og:image" content="https://arom-log.vercel.app/arom-icon-512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="โลโก้ Arom Log — แอปบันทึกอารมณ์ประจำวัน" />
+
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Arom Log — บันทึกอารมณ์ประจำวัน ขวดโหลอารมณ์ ปฏิทินอารมณ์" />
+    <meta name="twitter:description" content="เว็บแอปบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ ขวดโหลอารมณ์ฟิสิกส์ ปฏิทินอารมณ์ และบทวิเคราะห์สุขภาพจิตใจ" />
+    <meta name="twitter:image" content="https://arom-log.vercel.app/arom-icon-512.png" />
+
+    <!-- PWA / Icons -->
     <link rel="icon" type="image/png" href="/arom-icon.png" />
     <link rel="apple-touch-icon" href="/arom-icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
@@ -17,13 +41,58 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Arom Log" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Arom Log",
+        "alternateName": "บันทึกอารมณ์ในขวดโหล",
+        "url": "https://arom-log.vercel.app/",
+        "description": "เว็บแอปบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ เก็บอารมณ์ในขวดโหลฟิสิกส์ (Mood Jar) ดูปฏิทินอารมณ์ สถิติ streak และบทวิเคราะห์สุขภาพจิตใจ",
+        "inLanguage": "th",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "THB"
+        },
+        "featureList": [
+          "บันทึกอารมณ์ประจำวัน",
+          "วาดหน้าตาอารมณ์ด้วย Canvas",
+          "ขวดโหลอารมณ์ฟิสิกส์ (Mood Jar)",
+          "ปฏิทินอารมณ์และสถิติ streak",
+          "บทวิเคราะห์กิจกรรมที่ส่งผลต่ออารมณ์",
+          "เข้าสู่ระบบด้วย Google และรองรับติดตั้งเป็น PWA"
+        ],
+        "publisher": {
+          "@type": "Organization",
+          "name": "Arom Log",
+          "url": "https://arom-log.vercel.app/"
+        }
+      }
+    </script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>
+    <!-- Fallback content for crawlers/assistive tech that do not run JavaScript -->
+    <noscript>
+      <h1>Arom Log — บันทึกอารมณ์ประจำวัน ขวดโหลอารมณ์ ปฏิทินอารมณ์</h1>
+      <p>
+        Arom Log คือเว็บแอปช่วยดูแลสุขภาพจิตใจภาษาไทย เขียนบันทึกอารมณ์ประจำวัน วาดหน้าตาอารมณ์ของตัวเองด้วย Canvas
+        เก็บลูกแก้วอารมณ์ลงขวดโหลฟิสิกส์ (Mood Jar) ดูปฏิทินอารมณ์ย้อนหลัง สร้าง streak การบันทึกต่อเนื่อง
+        และวิเคราะห์ว่ากิจกรรมใดมักเกิดคู่กับความสุขหรือความเครียด ใช้งานฟรี เข้าสู่ระบบด้วย Google บัญชีเดียว
+        และติดตั้งเป็นแอปบนมือถือ (PWA) ได้
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
