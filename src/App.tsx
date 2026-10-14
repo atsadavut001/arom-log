@@ -33,6 +33,7 @@ import { UserProfileView } from './components/UserProfileView.tsx';
 import { MiniGame } from './components/MiniGame.tsx';
 import { StreakRewardsModal } from './components/StreakRewardsModal.tsx';
 import { InstallPwaModal } from './components/InstallPwaModal.tsx';
+import { SupportModal } from './components/SupportModal.tsx';
 import { AuthScreen } from './components/AuthScreen.tsx';
 import { Loader2 } from 'lucide-react';
 
@@ -199,6 +200,7 @@ export default function App() {
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showGameModal, setShowGameModal] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any | null>(null);
 
   useEffect(() => {
@@ -531,6 +533,7 @@ export default function App() {
         onOpenStreakModal={() => setShowStreakModal(true)}
         onOpenGameModal={() => setShowGameModal(true)}
         onOpenInstallModal={() => setShowInstallModal(true)}
+        onOpenSupportModal={() => setShowSupportModal(true)}
       />
 
       {/* Main Content Body with Route-based navigation */}
@@ -685,9 +688,24 @@ export default function App() {
         />
       )}
 
+      {/* Buy Me a Coffee Support Modal */}
+      {showSupportModal && (
+        <SupportModal onClose={() => setShowSupportModal(false)} />
+      )}
+
       {/* Footer */}
       <footer className="hidden md:block py-6 text-center text-xs text-gray-400 border-t border-gray-100 bg-white/50">
-        <p>Arom Log — สร้างขึ้นเพื่อการดูแลและสังเกตสภาวะอารมณ์ของคุณในทุกๆ วัน</p>
+        <p className="flex items-center justify-center gap-2">
+          <span>Arom Log — สร้างขึ้นเพื่อการดูแลและสังเกตสภาวะอารมณ์ของคุณในทุกๆ วัน</span>
+          <span>•</span>
+          <button
+            type="button"
+            onClick={() => setShowSupportModal(true)}
+            className="text-amber-700 hover:text-amber-800 font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer transition"
+          >
+            ☕ เลี้ยงกาแฟผู้พัฒนา
+          </button>
+        </p>
       </footer>
     </div>
   );

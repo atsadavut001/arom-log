@@ -13,7 +13,8 @@ import {
   User as UserIcon,
   Flame,
   Gamepad2,
-  Download
+  Download,
+  Coffee,
 } from 'lucide-react';
 
 export type TabType = 'calendar' | 'entry' | 'jar' | 'analytics' | 'community' | 'profile';
@@ -27,6 +28,7 @@ interface NavbarProps {
   onOpenStreakModal: () => void;
   onOpenGameModal: () => void;
   onOpenInstallModal?: () => void;
+  onOpenSupportModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -38,6 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenStreakModal,
   onOpenGameModal,
   onOpenInstallModal,
+  onOpenSupportModal,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -217,6 +220,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Gamepad2 className="w-4 h-4 text-indigo-600" />
                 <span className="hidden xl:inline text-xs">มินิเกม</span>
               </button>
+
+              {/* Buy Me a Coffee Support Button */}
+              {onOpenSupportModal && (
+                <button
+                  type="button"
+                  onClick={onOpenSupportModal}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 text-amber-950 border border-amber-300/80 transition cursor-pointer active:scale-95 text-xs font-bold shadow-2xs group"
+                  title="เลี้ยงกาแฟผู้พัฒนา (Buy Me a Coffee)"
+                >
+                  <Coffee className="w-4 h-4 text-amber-700 group-hover:rotate-12 transition-transform" />
+                  <span className="hidden sm:inline text-xs">เลี้ยงกาแฟ</span>
+                </button>
+              )}
 
               {/* Install PWA App Button */}
               {onOpenInstallModal && (
