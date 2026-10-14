@@ -392,3 +392,15 @@ export interface MiniGameRoundRecord {
   timestamp: number;
 }
 
+export const isLegacyDefaultBio = (bio?: string | null): boolean => {
+  if (!bio) return true;
+  const trimmed = bio.trim();
+  return (
+    trimmed === '' ||
+    trimmed === 'กำลังดูแลสุขภาพใจและบันทึกอารมณ์ในทุกๆ วัน 🌱' ||
+    trimmed === 'กำลังดูแลสุขภาพใจและบันทึกอารมณ์ในทุกๆ วัน' ||
+    trimmed === 'กำลังดูแลสุขภาพใจในทุกๆ วัน'
+  );
+};
+
+

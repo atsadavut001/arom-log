@@ -12,7 +12,7 @@ import {
   where
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
-import { UserProfile } from '../types.ts';
+import { UserProfile, isLegacyDefaultBio } from '../types.ts';
 import { UserProfileView } from './UserProfileView.tsx';
 import {
   Users,
@@ -322,9 +322,11 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                     <span className="text-[11px] text-amber-900/70 font-mono font-medium block">
                       {userHandle}
                     </span>
-                    <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                      {user.bio || 'กำลังดูแลสุขภาพใจในทุกๆ วัน'}
-                    </p>
+                    {!isLegacyDefaultBio(user.bio) && user.bio && user.bio.trim() ? (
+                      <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                        {user.bio}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 

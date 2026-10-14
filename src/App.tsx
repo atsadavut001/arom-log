@@ -22,7 +22,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { auth, db } from './firebase.ts';
-import { MoodEntry, UserProfile } from './types.ts';
+import { MoodEntry, UserProfile, isLegacyDefaultBio } from './types.ts';
 import { Navbar, TabType } from './components/Navbar.tsx';
 import { DailyEntryForm } from './components/DailyEntryForm.tsx';
 import { MoodJar } from './components/MoodJar.tsx';
@@ -119,7 +119,11 @@ function ProfileRouteWrapper({
         const snap = await getDoc(docRef);
         if (!isMounted) return;
         if (snap.exists()) {
-          setTargetProfile(snap.data() as UserProfile);
+          const fetchedData = snap.data() as UserProfile;
+          if (isLegacyDefaultBio(fetchedData.bio)) {
+            fetchedData.bio = '';
+          }
+          setTargetProfile(fetchedData);
         } else {
           setError('ไม่พบผู้ใช้งานนี้ในระบบ');
         }
@@ -259,7 +263,7 @@ export default function App() {
               avatarEmoji: '😊',
               avatarBg: '#FEF3C7',
               handle: defaultHandle,
-              bio: 'กำลังดูแลสุขภาพใจและบันทึกอารมณ์ในทุกๆ วัน 🌱',
+              bio: '',
               isPrivate: false,
               streak: 0,
               longestStreak: 0,
@@ -285,6 +289,9 @@ export default function App() {
               isPrivate: existingData.isPrivate === true,
               updatedAt: nowIso,
             };
+            if (isLegacyDefaultBio(existingData.bio)) {
+              patch.bio = '';
+            }
             await setDoc(userDocRef, patch, { merge: true });
             setCurrentUserProfile({ ...existingData, ...patch });
           }
@@ -293,6 +300,9 @@ export default function App() {
           unsubProfileDoc = onSnapshot(userDocRef, (snap) => {
             if (snap.exists()) {
               const liveData = snap.data() as UserProfile;
+              if (isLegacyDefaultBio(liveData.bio)) {
+                liveData.bio = '';
+              }
               setCurrentUserProfile(liveData);
               if (liveData.badges) {
                 setUnlockedBadges(liveData.badges);

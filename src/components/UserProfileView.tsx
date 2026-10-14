@@ -14,7 +14,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
-import { UserProfile, MoodEntry, SocialPost, MOOD_PRESETS, SCALE_0_10_LEVELS } from '../types.ts';
+import { UserProfile, MoodEntry, SocialPost, MOOD_PRESETS, SCALE_0_10_LEVELS, isLegacyDefaultBio } from '../types.ts';
 import { CanvasDrawer } from './CanvasDrawer.tsx';
 import { YearlyJournalBook } from './YearlyJournalBook.tsx';
 import { PaperShredderModal } from './PaperShredderModal.tsx';
@@ -138,11 +138,27 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   const [editHandle, setEditHandle] = useState<string>(
     userProfile.handle ? userProfile.handle.replace(/^@/, '') : userProfile.userId.substring(0, 8)
   );
-  const [editBio, setEditBio] = useState<string>(userProfile.bio || '');
+  const [editBio, setEditBio] = useState<string>(
+    isLegacyDefaultBio(userProfile.bio) ? '' : (userProfile.bio || '')
+  );
   const [editIsPrivate, setEditIsPrivate] = useState<boolean>(userProfile.isPrivate === true);
   const [isSavingProfile, setIsSavingProfile] = useState<boolean>(false);
   const [copiedHandle, setCopiedHandle] = useState<boolean>(false);
   const [handleError, setHandleError] = useState<string>('');
+
+  const handleOpenEdit = () => {
+    setEditDisplayName(userProfile.displayName || '');
+    setEditAvatarEmoji(userProfile.avatarEmoji || '😊');
+    setEditAvatarBg(userProfile.avatarBg || '#FEF3C7');
+    setEditPhotoURL(userProfile.photoURL || '');
+    setEditHandle(
+      userProfile.handle ? userProfile.handle.replace(/^@/, '') : userProfile.userId.substring(0, 8)
+    );
+    setEditBio(isLegacyDefaultBio(userProfile.bio) ? '' : (userProfile.bio || ''));
+    setEditIsPrivate(userProfile.isPrivate === true);
+    setHandleError('');
+    setIsEditing(true);
+  };
 
   // Only the profile owner can access 'journal' tab
   useEffect(() => {
@@ -645,7 +661,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 {isOwnProfile ? (
                   <button
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    onClick={handleOpenEdit}
                     className="px-4 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs w-full sm:w-auto"
                   >
                     <Edit3 className="w-4 h-4 text-amber-700" />
@@ -678,9 +694,11 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             </div>
 
             {/* Bio / Status text */}
-            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-xl">
-              {userProfile.bio || 'กำลังดูแลสุขภาพใจและบันทึกอารมณ์ในทุกๆ วัน 🌱'}
-            </p>
+            {!isLegacyDefaultBio(userProfile.bio) && userProfile.bio && userProfile.bio.trim() ? (
+              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-xl">
+                {userProfile.bio}
+              </p>
+            ) : null}
 
             {/* Quick Stats: Streak, Posts, Following */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-4 pt-2">
