@@ -30,7 +30,7 @@ import { CalendarView } from './components/CalendarView.tsx';
 import { AnalyticsView } from './components/AnalyticsView.tsx';
 import { CommunityView } from './components/CommunityView.tsx';
 import { UserProfileView } from './components/UserProfileView.tsx';
-import { MiniGame } from './components/MiniGame.tsx';
+import { GamesView } from './components/GamesView.tsx';
 import { StreakRewardsModal } from './components/StreakRewardsModal.tsx';
 import { InstallPwaModal } from './components/InstallPwaModal.tsx';
 import { SupportModal } from './components/SupportModal.tsx';
@@ -198,7 +198,6 @@ export default function App() {
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
   const [showStreakModal, setShowStreakModal] = useState(false);
-  const [showGameModal, setShowGameModal] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any | null>(null);
@@ -531,7 +530,6 @@ export default function App() {
         currentUserProfile={currentUserProfile}
         streak={streakStats.current}
         onOpenStreakModal={() => setShowStreakModal(true)}
-        onOpenGameModal={() => setShowGameModal(true)}
         onOpenInstallModal={() => setShowInstallModal(true)}
         onOpenSupportModal={() => setShowSupportModal(true)}
       />
@@ -628,6 +626,14 @@ export default function App() {
               }
             />
             <Route
+              path="/games"
+              element={<GamesView onGameComplete={handleGameComplete} />}
+            />
+            <Route
+              path="/games/:gameId"
+              element={<GamesView onGameComplete={handleGameComplete} />}
+            />
+            <Route
               path="/profile"
               element={
                 <ProfileRouteWrapper
@@ -668,14 +674,6 @@ export default function App() {
           unlockedBadgeIds={unlockedBadges}
           recordedDates={entries.map((e) => e.date)}
           onClose={() => setShowStreakModal(false)}
-        />
-      )}
-
-      {/* Mini-Game Modal */}
-      {showGameModal && (
-        <MiniGame
-          onClose={() => setShowGameModal(false)}
-          onGameComplete={handleGameComplete}
         />
       )}
 
