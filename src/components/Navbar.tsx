@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import { logoutUser } from '../firebase.ts';
 import { UserProfile } from '../types.ts';
@@ -20,9 +21,9 @@ export type TabType = 'calendar' | 'entry' | 'jar' | 'analytics' | 'community' |
 interface NavbarProps {
   currentUser: User;
   currentUserProfile?: UserProfile | null;
-  currentTab: TabType;
+  currentTab?: TabType;
   streak: number;
-  onSelectTab: (tab: TabType) => void;
+  onSelectTab?: (tab: TabType) => void;
   onOpenStreakModal: () => void;
   onOpenGameModal: () => void;
   onOpenInstallModal?: () => void;
@@ -31,13 +32,37 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   currentUserProfile,
-  currentTab,
+  currentTab: propCurrentTab,
   streak,
   onSelectTab,
   onOpenStreakModal,
   onOpenGameModal,
   onOpenInstallModal,
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const getActiveTab = (): TabType => {
+    const p = location.pathname;
+    if (p.startsWith('/entry')) return 'entry';
+    if (p.startsWith('/jar')) return 'jar';
+    if (p.startsWith('/analytics')) return 'analytics';
+    if (p.startsWith('/community')) return 'community';
+    if (p.startsWith('/profile')) return 'profile';
+    return 'calendar';
+  };
+
+  const activeTab = propCurrentTab || getActiveTab();
+
+  const handleNavClick = (tabId: TabType) => {
+    if (onSelectTab) onSelectTab(tabId);
+    if (tabId === 'calendar') {
+      navigate('/');
+    } else {
+      navigate(`/${tabId}`);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -129,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center justify-between h-15 sm:h-16 gap-3">
             {/* Logo */}
             <div
-              onClick={() => onSelectTab('calendar')}
+              onClick={() => handleNavClick('calendar')}
               className="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group"
             >
               <img
@@ -150,12 +175,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Desktop Navigation Tabs (Spacious, Clean & Non-Cramped) */}
             <nav className="hidden md:flex items-center gap-1 bg-gray-100/70 p-1 rounded-xl border border-gray-200/50">
               {desktopNavItems.map((item) => {
-                const isActive = currentTab === item.id;
+                const isActive = activeTab === item.id;
                 return (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => onSelectTab(item.id)}
+                    onClick={() => handleNavClick(item.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs lg:text-sm transition-all cursor-pointer ${
                       isActive
                         ? 'bg-white text-gray-900 font-bold shadow-xs ring-1 ring-gray-200/80'
@@ -212,9 +237,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* User Profile Button / Chip */}
               <button
                 type="button"
-                onClick={() => onSelectTab('profile')}
+                onClick={() => handleNavClick('profile')}
                 className={`flex items-center gap-2 py-1 px-1.5 sm:px-2 rounded-xl border transition-all cursor-pointer ${
-                  currentTab === 'profile'
+                  activeTab === 'profile'
                     ? 'bg-amber-100/90 border-amber-300 ring-2 ring-amber-200 shadow-xs'
                     : 'bg-gray-50/80 hover:bg-amber-50/60 border-gray-200/80'
                 }`}
@@ -253,12 +278,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Bottom Fixed Navigation Dock (Native App Style) */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 z-50 px-1 py-1 flex justify-around items-center shadow-lg safe-bottom">
         {navItems.map((item) => {
-          const isActive = currentTab === item.id;
+          const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
               type="button"
-              onClick={() => onSelectTab(item.id)}
+              onClick={() => handleNavClick(item.id)}
               className={`flex-1 py-1 px-0.5 flex flex-col items-center justify-center gap-0.5 rounded-xl transition cursor-pointer ${
                 isActive
                   ? 'text-amber-600 font-bold'

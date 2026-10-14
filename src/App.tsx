@@ -4,6 +4,14 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+  useParams
+} from 'react-router-dom';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import {
   collection,
@@ -28,6 +36,159 @@ import { InstallPwaModal } from './components/InstallPwaModal.tsx';
 import { AuthScreen } from './components/AuthScreen.tsx';
 import { Loader2 } from 'lucide-react';
 
+// Route wrapper for /entry and /entry/:date
+function DailyEntryRouteWrapper({
+  currentUser,
+  entries,
+  selectedDate,
+  onDateChange,
+  onEntrySaved,
+}: {
+  currentUser: User;
+  entries: MoodEntry[];
+  selectedDate: string;
+  onDateChange: (date: string) => void;
+  onEntrySaved: () => void;
+}) {
+  const { date } = useParams<{ date?: string }>();
+  const navigate = useNavigate();
+
+  const effectiveDate =
+    date && /^\d{4}-\d{2}-\d{2}$/.test(date)
+      ? date
+      : selectedDate || new Date().toISOString().split('T')[0];
+
+  const handleDateChange = (newDate: string) => {
+    onDateChange(newDate);
+    navigate(`/entry/${newDate}`);
+  };
+
+  return (
+    <DailyEntryForm
+      currentUser={currentUser}
+      entries={entries}
+      selectedDate={effectiveDate}
+      onDateChange={handleDateChange}
+      onEntrySaved={onEntrySaved}
+      onBack={() => navigate('/')}
+    />
+  );
+}
+
+// Route wrapper for /profile and /profile/:userId
+function ProfileRouteWrapper({
+  currentUser,
+  currentUserProfile,
+  ownEntries,
+  selectedMonth,
+  onMonthChange,
+  onUpdateOwnProfile,
+  onSelectDateForEdit,
+}: {
+  currentUser: User;
+  currentUserProfile: UserProfile | null;
+  ownEntries: MoodEntry[];
+  selectedMonth: string;
+  onMonthChange: (month: string) => void;
+  onUpdateOwnProfile: (updatedData: Partial<UserProfile>) => Promise<void>;
+  onSelectDateForEdit: (dateStr: string) => void;
+}) {
+  const { userId } = useParams<{ userId?: string }>();
+  const navigate = useNavigate();
+  const [targetProfile, setTargetProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isOwn = !userId || userId === currentUser.uid;
+
+  useEffect(() => {
+    if (isOwn) {
+      setTargetProfile(currentUserProfile);
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+
+    const fetchOtherProfile = async () => {
+      try {
+        const docRef = doc(db, 'users', userId!);
+        const snap = await getDoc(docRef);
+        if (!isMounted) return;
+        if (snap.exists()) {
+          setTargetProfile(snap.data() as UserProfile);
+        } else {
+          setError('ไม่พบผู้ใช้งานนี้ในระบบ');
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('Error fetching profile:', err);
+        setError('โหลดข้อมูลผู้ใช้ไม่สำเร็จ');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchOtherProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, isOwn, currentUserProfile]);
+
+  if (isOwn && currentUserProfile) {
+    return (
+      <UserProfileView
+        userProfile={currentUserProfile}
+        currentUser={currentUser}
+        isOwnProfile={true}
+        ownEntries={ownEntries}
+        selectedMonth={selectedMonth}
+        onMonthChange={onMonthChange}
+        onUpdateOwnProfile={onUpdateOwnProfile}
+        onSelectDateForEdit={onSelectDateForEdit}
+      />
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+        <p className="text-sm font-semibold text-gray-500">กำลังโหลดโปรไฟล์...</p>
+      </div>
+    );
+  }
+
+  if (error || !targetProfile) {
+    return (
+      <div className="text-center py-16 px-4 bg-white rounded-3xl border border-gray-200 max-w-md mx-auto space-y-4">
+        <p className="text-gray-700 font-bold">{error || 'ไม่พบข้อมูลโปรไฟล์'}</p>
+        <button
+          type="button"
+          onClick={() => navigate('/community')}
+          className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+        >
+          กลับไปหน้าชุมชน
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <UserProfileView
+      userProfile={targetProfile}
+      currentUser={currentUser}
+      isOwnProfile={false}
+      selectedMonth={selectedMonth}
+      onMonthChange={onMonthChange}
+      onBack={() => navigate('/community')}
+      onSelectDateForEdit={onSelectDateForEdit}
+    />
+  );
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null);
@@ -50,15 +211,14 @@ export default function App() {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const todayStr = new Date().toISOString().split('T')[0];
   const currentMonthStr = todayStr.substring(0, 7);
 
-  // Default to 'calendar', but initial snapshot will determine if today has an entry
-  const [currentTab, setCurrentTab] = useState<TabType>('calendar');
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthStr);
-
-  const hasInitialRoutedRef = useRef<boolean>(false);
 
   // 1. Session Management: Listen to Auth State and UserProfile
   useEffect(() => {
@@ -74,7 +234,6 @@ export default function App() {
       }
 
       if (!user) {
-        hasInitialRoutedRef.current = false;
         setCurrentUserProfile(null);
         setUnlockedBadges([]);
       }
@@ -172,20 +331,6 @@ export default function App() {
         fetchedEntries.sort((a, b) => b.date.localeCompare(a.date));
         setEntries(fetchedEntries);
         setEntriesLoading(false);
-
-        // Routing rule requested:
-        // Default to Calendar View; if today does not have a mood entry yet, route to Daily Entry
-        if (!hasInitialRoutedRef.current) {
-          const currentDayStr = new Date().toISOString().split('T')[0];
-          const hasTodayEntry = fetchedEntries.some((e) => e.date === currentDayStr);
-
-          if (!hasTodayEntry) {
-            setCurrentTab('entry');
-          } else {
-            setCurrentTab('calendar');
-          }
-          hasInitialRoutedRef.current = true;
-        }
       },
       (error) => {
         console.error('Firestore entries listener error:', error);
@@ -320,13 +465,13 @@ export default function App() {
 
   // Handle entry saved
   const handleEntrySaved = () => {
-    setCurrentTab('calendar');
+    navigate('/');
   };
 
   // Handle selecting a date to edit or view
   const handleSelectDateForEdit = (dateStr: string) => {
     setSelectedDate(dateStr);
-    setCurrentTab('entry');
+    navigate(`/entry/${dateStr}`);
   };
 
   // Handle game completion and badge award
@@ -382,85 +527,133 @@ export default function App() {
       <Navbar
         currentUser={currentUser}
         currentUserProfile={currentUserProfile}
-        currentTab={currentTab}
         streak={streakStats.current}
-        onSelectTab={setCurrentTab}
         onOpenStreakModal={() => setShowStreakModal(true)}
         onOpenGameModal={() => setShowGameModal(true)}
         onOpenInstallModal={() => setShowInstallModal(true)}
       />
 
-      {/* Main Content Body */}
+      {/* Main Content Body with Route-based navigation */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-6 pb-24 md:pb-8">
         {entriesLoading && entries.length === 0 ? (
           <div className="py-20 flex justify-center items-center">
             <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
           </div>
         ) : (
-          <>
-            {currentTab === 'calendar' && (
-              <CalendarView
-                entries={entries}
-                selectedMonth={selectedMonth}
-                onMonthChange={setSelectedMonth}
-                onSelectDateForEdit={handleSelectDateForEdit}
-              />
-            )}
-
-            {currentTab === 'entry' && (
-              <DailyEntryForm
-                currentUser={currentUser}
-                entries={entries}
-                selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
-                onEntrySaved={handleEntrySaved}
-                onBack={() => setCurrentTab('calendar')}
-              />
-            )}
-
-            {currentTab === 'jar' && (
-              <MoodJar
-                entries={entries}
-                selectedMonth={selectedMonth}
-                onMonthChange={setSelectedMonth}
-                onSelectEntry={(entry) => {
-                  setSelectedDate(entry.date);
-                }}
-              />
-            )}
-
-            {currentTab === 'analytics' && (
-              <AnalyticsView
-                entries={entries}
-                selectedMonth={selectedMonth}
-                onMonthChange={setSelectedMonth}
-              />
-            )}
-
-            {currentTab === 'community' && (
-              <CommunityView
-                currentUser={currentUser}
-                currentUserProfile={currentUserProfile}
-                onSelectOwnProfile={() => setCurrentTab('profile')}
-                onSelectDateForEdit={handleSelectDateForEdit}
-                selectedMonth={selectedMonth}
-                onMonthChange={setSelectedMonth}
-              />
-            )}
-
-            {currentTab === 'profile' && currentUserProfile && (
-              <UserProfileView
-                userProfile={currentUserProfile}
-                currentUser={currentUser}
-                isOwnProfile={true}
-                ownEntries={entries}
-                selectedMonth={selectedMonth}
-                onMonthChange={setSelectedMonth}
-                onUpdateOwnProfile={handleUpdateOwnProfile}
-                onSelectDateForEdit={handleSelectDateForEdit}
-              />
-            )}
-          </>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <CalendarView
+                  entries={entries}
+                  selectedMonth={selectedMonth}
+                  onMonthChange={setSelectedMonth}
+                  onSelectDateForEdit={handleSelectDateForEdit}
+                />
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <CalendarView
+                  entries={entries}
+                  selectedMonth={selectedMonth}
+                  onMonthChange={setSelectedMonth}
+                  onSelectDateForEdit={handleSelectDateForEdit}
+                />
+              }
+            />
+            <Route
+              path="/entry"
+              element={
+                <DailyEntryRouteWrapper
+                  currentUser={currentUser}
+                  entries={entries}
+                  selectedDate={selectedDate}
+                  onDateChange={setSelectedDate}
+                  onEntrySaved={handleEntrySaved}
+                />
+              }
+            />
+            <Route
+              path="/entry/:date"
+              element={
+                <DailyEntryRouteWrapper
+                  currentUser={currentUser}
+                  entries={entries}
+                  selectedDate={selectedDate}
+                  onDateChange={setSelectedDate}
+                  onEntrySaved={handleEntrySaved}
+                />
+              }
+            />
+            <Route
+              path="/jar"
+              element={
+                <MoodJar
+                  entries={entries}
+                  selectedMonth={selectedMonth}
+                  onMonthChange={setSelectedMonth}
+                  onSelectEntry={(entry) => {
+                    setSelectedDate(entry.date);
+                    navigate(`/entry/${entry.date}`);
+                  }}
+                />
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <AnalyticsView
+                  entries={entries}
+                  selectedMonth={selectedMonth}
+                  onMonthChange={setSelectedMonth}
+                />
+              }
+            />
+            <Route
+              path="/community"
+              element={
+                <CommunityView
+                  currentUser={currentUser}
+                  currentUserProfile={currentUserProfile}
+                  onSelectOwnProfile={() => navigate('/profile')}
+                  onSelectDateForEdit={handleSelectDateForEdit}
+                  selectedMonth={selectedMonth}
+                  onMonthChange={setSelectedMonth}
+                />
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProfileRouteWrapper
+                  currentUser={currentUser}
+                  currentUserProfile={currentUserProfile}
+                  ownEntries={entries}
+                  selectedMonth={selectedMonth}
+                  onMonthChange={setSelectedMonth}
+                  onUpdateOwnProfile={handleUpdateOwnProfile}
+                  onSelectDateForEdit={handleSelectDateForEdit}
+                />
+              }
+            />
+            <Route
+              path="/profile/:userId"
+              element={
+                <ProfileRouteWrapper
+                  currentUser={currentUser}
+                  currentUserProfile={currentUserProfile}
+                  ownEntries={entries}
+                  selectedMonth={selectedMonth}
+                  onMonthChange={setSelectedMonth}
+                  onUpdateOwnProfile={handleUpdateOwnProfile}
+                  onSelectDateForEdit={handleSelectDateForEdit}
+                />
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         )}
       </main>
 

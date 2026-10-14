@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import {
   collection,
@@ -43,6 +44,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   selectedMonth,
   onMonthChange,
 }) => {
+  const navigate = useNavigate();
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -169,10 +171,6 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
       {/* Top Banner Notice */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
         <div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-            Social Friends & Peaceful Community
-          </span>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
             พื้นที่ส่งพลังใจ & ติดตามเพื่อน
           </h2>
@@ -188,10 +186,18 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
             className="self-start sm:self-auto px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold rounded-2xl transition flex items-center gap-2 cursor-pointer shadow-2xs"
           >
             <div
-              className="w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-xs border border-white"
+              className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center text-sm shadow-xs border border-white"
               style={{ backgroundColor: currentUserProfile.avatarBg || '#FEF3C7' }}
             >
-              {currentUserProfile.avatarEmoji || '😊'}
+              {currentUserProfile.photoURL ? (
+                <img
+                  src={currentUserProfile.photoURL}
+                  alt="รูปโปรไฟล์ของฉัน"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                currentUserProfile.avatarEmoji || '😊'
+              )}
             </div>
             <span>โปรไฟล์ของฉัน</span>
           </button>
@@ -282,16 +288,24 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
             return (
               <div
                 key={user.userId}
-                onClick={() => setSelectedUser(user)}
+                onClick={() => navigate(`/profile/${user.userId}`)}
                 className="p-4 rounded-3xl border border-gray-200 bg-white hover:border-amber-300 hover:shadow-md transition-all flex items-center justify-between gap-3 shadow-2xs group cursor-pointer"
               >
                 {/* User Info with Anonymous Emoji Avatar */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-xs border-2 border-white ring-1 ring-amber-200 shrink-0 group-hover:scale-105 transition-transform"
+                    className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center text-2xl shadow-xs border-2 border-white ring-1 ring-amber-200 shrink-0 group-hover:scale-105 transition-transform"
                     style={{ backgroundColor: userBg }}
                   >
-                    <span className="filter drop-shadow-2xs select-none">{userEmoji}</span>
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={`รูปโปรไฟล์ของ ${user.displayName}`}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <span className="filter drop-shadow-2xs select-none">{userEmoji}</span>
+                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">

@@ -352,10 +352,6 @@ export const MoodJar: React.FC<MoodJarProps> = ({
       {/* Header and Month Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
         <div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-pink-50 text-pink-700 border border-pink-200">
-            <Heart className="w-3.5 h-3.5 text-pink-500" />
-            Physics Mood Jar (FR3.2)
-          </span>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
             โหลแก้วเก็บอารมณ์
           </h2>

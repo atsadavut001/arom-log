@@ -251,10 +251,6 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
         {/* Top Banner & Date Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 sm:pb-6 border-b border-gray-100">
         <div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            Daily Mood Entry
-          </span>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
             บันทึกอารมณ์ประจำวัน
           </h2>

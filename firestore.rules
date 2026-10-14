@@ -40,7 +40,7 @@ service cloud.firestore {
         && data.userId is string && data.userId == request.auth.uid
         && data.displayName is string && data.displayName.size() <= 100
         && data.email is string && data.email.size() <= 150
-        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1024))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 200000))
         && (!('avatarEmoji' in data) || (data.avatarEmoji is string && data.avatarEmoji.size() <= 32))
         && (!('avatarBg' in data) || (data.avatarBg is string && data.avatarBg.size() <= 32))
         && (!('handle' in data) || (data.handle is string && data.handle.size() <= 64))
@@ -68,6 +68,17 @@ service cloud.firestore {
         && data.note is string && data.note.size() <= 2000
         && (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500000))
         && (!('isPublic' in data) || data.isPublic is bool)
+        && (!('likes' in data) || (data.likes is list && data.likes.size() <= 500))
+        && (!('likesCount' in data) || data.likesCount is number);
+    }
+
+    function isValidSocialPost(data) {
+      return data.keys().hasAll(['id', 'userId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'drawing', 'text', 'likes', 'likesCount', 'createdAt', 'updatedAt'])
+        && data.id is string && data.id.size() <= 64
+        && data.userId is string && data.userId == request.auth.uid
+        && (!('drawing' in data) || (data.drawing is string && data.drawing.size() <= 200000))
+        && (!('text' in data) || (data.text is string && data.text.size() <= 500))
         && (!('likes' in data) || (data.likes is list && data.likes.size() <= 500))
         && (!('likesCount' in data) || data.likesCount is number);
     }
@@ -115,6 +126,34 @@ service cloud.firestore {
             && incoming().likesCount is number)
         );
         allow delete: if isOwner(userId) && isValidId(entryId);
+      }
+
+      // User's Social Posts Subcollection (โพสต์โซเชียล: วาด emoji + ข้อความ)
+      match /posts/{postId} {
+        // Read: owner always; others only if the parent profile is not private
+        allow get, list: if isOwner(userId) || (isSignedIn() && isProfilePrivate(userId) == false);
+        allow create: if isOwner(userId)
+          && isValidId(postId)
+          && incoming().id == postId
+          && incoming().userId == userId
+          && isValidSocialPost(incoming());
+        allow update: if isValidId(postId) && (
+          // Owner full update (immutable: id, userId, createdAt ห้ามเปลี่ยน)
+          (isOwner(userId)
+            && incoming().userId == existing().userId
+            && incoming().id == existing().id
+            && incoming().createdAt == existing().createdAt
+            && isValidSocialPost(incoming()))
+          ||
+          // Social Heart/Like update by other signed-in users (only on public profiles)
+          (isSignedIn()
+            && isProfilePrivate(userId) == false
+            && incoming().diff(existing()).affectedKeys().hasOnly(['likes', 'likesCount'])
+            && incoming().likes is list
+            && incoming().likes.size() <= 500
+            && incoming().likesCount is number)
+        );
+        allow delete: if isOwner(userId) && isValidId(postId);
       }
     }
 

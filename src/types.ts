@@ -273,11 +273,24 @@ export interface MoodEntry {
   updatedAt: string;
 }
 
+// Social post on a user's profile feed: a hand-drawn emoji image + short text, posted like a social media post
+// Stored at /users/{userId}/posts/{postId} (same identity isolation pattern as MoodEntry)
+export interface SocialPost {
+  id: string;
+  userId: string;
+  drawing?: string; // data URL of the drawn emoji (canvas), optional
+  text?: string; // post message, optional
+  likes?: string[]; // Array of user IDs who liked
+  likesCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UserProfile {
   userId: string;
   displayName: string;
   email: string;
-  photoURL?: string;
+  photoURL?: string; // Uploaded profile photo (256x256 JPEG data URL from Edit Profile modal) or Google account photo
   avatarEmoji?: string; // Anonymity-friendly emoji avatar e.g. 🐱, 🦊, 😊
   avatarBg?: string; // Hex background color for avatar e.g. #FEF3C7
   handle?: string; // Search handle e.g. happy_cat without @ or with @

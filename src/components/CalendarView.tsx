@@ -143,14 +143,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => onSelectDateForEdit(todayStr)}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            บันทึกอารมณ์วันนี้
-          </button>
         </div>
       )}
 

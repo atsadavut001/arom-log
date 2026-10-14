@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MoodEntry, MOOD_PRESETS } from '../types.ts';
+import { generateMoodInsight, isGeminiConfigured } from '../gemini.ts';
 import {
   TrendingUp,
   Award,
@@ -8,7 +9,10 @@ import {
   BarChart3,
   Calendar,
   Sparkles,
-  Zap
+  Zap,
+  Loader2,
+  ShieldAlert,
+  RefreshCw
 } from 'lucide-react';
 
 interface AnalyticsViewProps {
@@ -22,6 +26,17 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   selectedMonth,
 }) => {
   const monthEntries = entries.filter((e) => e.date.startsWith(selectedMonth));
+
+  // Mood Insight state (Gemini)
+  const [insightText, setInsightText] = useState<string>('');
+  const [insightLoading, setInsightLoading] = useState<boolean>(false);
+  const [insightError, setInsightError] = useState<string>('');
+
+  // Reset insight when switching month so results never mix between months
+  useEffect(() => {
+    setInsightText('');
+    setInsightError('');
+  }, [selectedMonth]);
 
   // 1. Dominant Mood
   const moodCounts: Record<string, number> = {};
@@ -130,14 +145,40 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     }
   }
 
+  // Mood Insight handler (Gemini)
+  const handleGenerateInsight = async () => {
+    if (!isGeminiConfigured()) {
+      setInsightError('ยังไม่ได้ตั้งค่าคีย์ AI — เพิ่ม GEMINI_API_KEY หรือ VITE_GEMINI_API_KEY ใน .env แล้ว build ใหม่');
+      return;
+    }
+
+    setInsightLoading(true);
+    setInsightError('');
+    try {
+      const thaiMonths = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      const [yStr, mStr] = selectedMonth.split('-');
+      const year = Number(yStr);
+      const monthIdx = Number(mStr) - 1;
+      const monthLabel = `${thaiMonths[monthIdx] || selectedMonth} ${year + 543}`;
+
+      const text = await generateMoodInsight({ monthLabel, entries: monthEntries });
+      setInsightText(text);
+    } catch (err) {
+      console.error('Mood Insight error:', err);
+      setInsightText('');
+      setInsightError('สร้างสรุปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="pb-4 sm:pb-6 border-b border-gray-100">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-          <BarChart3 className="w-3.5 h-3.5 text-indigo-600" />
-          Analytics & Insights (FR3.3)
-        </span>
         <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
           บทวิเคราะห์สุขภาพใจ & ความสัมพันธ์ของกิจกรรม
         </h2>
@@ -332,6 +373,80 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   ยินดีด้วย! ยังไม่พบกิจกรรมที่จับคู่กับอารมณ์เชิงลบในเดือนนี้
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Mood Insight — Gemini AI summary (สรุปอารมณ์จาก entries) */}
+          <div className="border border-indigo-200 rounded-2xl p-5 bg-indigo-50/50 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="font-bold text-indigo-950 text-sm flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-indigo-500" />
+                Mood Insight
+              </h4>
+              {!isGeminiConfigured() && (
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+                  ยังไม่ได้ตั้งค่าคีย์ AI
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">
+              AI จะประเมินจากข้อมูลเดือนนี้ (วันที่ อารมณ์ คะแนน แฮชแท็ก และโน้ตสั้น สูงสุด 200 ตัวอักษรต่อวัน)
+              โดยไม่ส่งรูปภาพที่วาดหรือข้อมูลอื่น
+            </p>
+
+            {/* Error banner */}
+            {insightError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700 font-semibold flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{insightError}</span>
+              </div>
+            )}
+
+            {/* Generate button */}
+            {!insightText && !insightLoading && (
+              <button
+                type="button"
+                onClick={handleGenerateInsight}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                สรุปอารมณ์เดือนนี้
+              </button>
+            )}
+
+            {/* Loading state */}
+            {insightLoading && (
+              <div className="flex items-center gap-2.5 text-indigo-700 text-xs font-bold">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>กำลังวิเคราะห์แบบแผนอารมณ์ของคุณ... (ใช้เวลาสักครู่)</span>
+              </div>
+            )}
+
+            {/* Interesting result */}
+            {insightText && (
+              <div className="space-y-2.5">
+                <div className="whitespace-pre-wrap text-[13px] sm:text-sm text-gray-800 leading-relaxed bg-white rounded-2xl border border-indigo-100 p-4 shadow-2xs">
+                  {insightText}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateInsight}
+                  disabled={insightLoading}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3 h-3 ${insightLoading ? 'animate-spin' : ''}`} />
+                  ขอสรุปใหม่อีกครั้ง
+                </button>
+              </div>
+            )}
+
+            {/* Disclaimer + crisis hotline (สนับสนุนไม่ใช่การวินิจฉัย) */}
+            <div className="flex items-start gap-2 text-[11px] text-gray-500 bg-white/70 border border-indigo-100 rounded-xl p-3">
+              <ShieldAlert className="w-4 h-4 shrink-0 text-indigo-400 mt-0.5" />
+              <span>
+                ผลจาก AI เป็นเพียงแนวทางสังเกตใจและปลอบประโลม ไม่ใช่คำวินิจฉัยหรือคำแนะนำทางการแพทย์
+                หากกำลังเป็นทุกข์หนัก โปรดคุยกับผู้เชี่ยวชาญ — สายด่วนสุขภาพจิต 1323 (ฟรี 24 ชม.)
+              </span>
             </div>
           </div>
         </>

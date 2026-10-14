@@ -304,3 +304,195 @@ export function playFireBurnASMR(durationSeconds: number = 3.6): void {
   windSource.start(windStart);
   windSource.stop(windStart + windDuration);
 }
+
+/**
+ * Play gentle paper rustle / page turn sound effect
+ */
+export function playPageTurnSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const sampleRate = ctx.sampleRate;
+  const duration = 0.22;
+
+  // Soft noise buffer for paper friction
+  const bufferSize = Math.floor(sampleRate * duration);
+  const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(1400, now);
+  filter.frequency.exponentialRampToValueAtTime(700, now + duration);
+  filter.Q.setValueAtTime(1.8, now);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.001, now);
+  gain.gain.linearRampToValueAtTime(0.14, now + 0.04);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+
+  source.start(now);
+  source.stop(now + duration);
+}
+
+/**
+ * Play soft leather hardcover book closing sound effect
+ */
+export function playBookCloseSound(): void {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+
+  // 1. Air rush / paper slide right before shut
+  const sampleRate = ctx.sampleRate;
+  const slideDuration = 0.18;
+  const bufferSize = Math.floor(sampleRate * slideDuration);
+  const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+
+  const slideSource = ctx.createBufferSource();
+  slideSource.buffer = buffer;
+  const slideFilter = ctx.createBiquadFilter();
+  slideFilter.type = 'lowpass';
+  slideFilter.frequency.setValueAtTime(1000, now);
+  slideFilter.frequency.exponentialRampToValueAtTime(300, now + slideDuration);
+
+  const slideGain = ctx.createGain();
+  slideGain.gain.setValueAtTime(0.001, now);
+  slideGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+  slideGain.gain.exponentialRampToValueAtTime(0.0001, now + slideDuration);
+
+  slideSource.connect(slideFilter);
+  slideFilter.connect(slideGain);
+  slideGain.connect(ctx.destination);
+
+  slideSource.start(now);
+  slideSource.stop(now + slideDuration);
+
+  // 2. Soft leather thud at impact
+  const hitTime = now + 0.12;
+  const thudOsc = ctx.createOscillator();
+  const thudGain = ctx.createGain();
+
+  thudOsc.type = 'sine';
+  thudOsc.frequency.setValueAtTime(110, hitTime);
+  thudOsc.frequency.exponentialRampToValueAtTime(45, hitTime + 0.14);
+
+  thudGain.gain.setValueAtTime(0.001, hitTime);
+  thudGain.gain.linearRampToValueAtTime(0.2, hitTime + 0.02);
+  thudGain.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.15);
+
+  thudOsc.connect(thudGain);
+  thudGain.connect(ctx.destination);
+
+  thudOsc.start(hitTime);
+  thudOsc.stop(hitTime + 0.16);
+}
+
+/**
+ * Play realistic mechanical paper shredder sound effect
+ * Returns a stop callback to immediately cease playback if interrupted
+ */
+export function playPaperShredderSound(durationSeconds: number = 2.2): () => void {
+  const ctx = getAudioContext();
+  if (!ctx) return () => {};
+
+  const now = ctx.currentTime;
+  const duration = durationSeconds;
+
+  // 1. Motor Hum: Dual low oscillators (85Hz + 170Hz) with lowpass filter
+  const motorOsc1 = ctx.createOscillator();
+  const motorOsc2 = ctx.createOscillator();
+  motorOsc1.type = 'sawtooth';
+  motorOsc1.frequency.setValueAtTime(85, now);
+  motorOsc1.frequency.linearRampToValueAtTime(95, now + 0.3);
+  motorOsc1.frequency.linearRampToValueAtTime(75, now + duration);
+
+  motorOsc2.type = 'triangle';
+  motorOsc2.frequency.setValueAtTime(170, now);
+  motorOsc2.frequency.linearRampToValueAtTime(190, now + 0.3);
+  motorOsc2.frequency.linearRampToValueAtTime(150, now + duration);
+
+  const motorFilter = ctx.createBiquadFilter();
+  motorFilter.type = 'lowpass';
+  motorFilter.frequency.setValueAtTime(320, now);
+
+  const motorGain = ctx.createGain();
+  motorGain.gain.setValueAtTime(0.001, now);
+  motorGain.gain.linearRampToValueAtTime(0.12, now + 0.08);
+  motorGain.gain.setValueAtTime(0.12, now + duration - 0.2);
+  motorGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  motorOsc1.connect(motorFilter);
+  motorOsc2.connect(motorFilter);
+  motorFilter.connect(motorGain);
+  motorGain.connect(ctx.destination);
+
+  motorOsc1.start(now);
+  motorOsc2.start(now);
+  motorOsc1.stop(now + duration);
+  motorOsc2.stop(now + duration);
+
+  // 2. Paper Tearing / Crunching Friction: Bandpass noise buffer
+  const sampleRate = ctx.sampleRate;
+  const bufferSize = Math.floor(sampleRate * duration);
+  const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    // Shredding texture: fluctuating tooth cuts
+    const teethMod = Math.sin((i / sampleRate) * Math.PI * 40) > 0 ? 1 : 0.4;
+    data[i] = (Math.random() * 2 - 1) * teethMod;
+  }
+
+  const noiseSource = ctx.createBufferSource();
+  noiseSource.buffer = buffer;
+
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(1300, now);
+  noiseFilter.frequency.linearRampToValueAtTime(1100, now + duration);
+  noiseFilter.Q.setValueAtTime(2.2, now);
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.001, now);
+  noiseGain.gain.linearRampToValueAtTime(0.16, now + 0.15);
+  noiseGain.gain.setValueAtTime(0.16, now + duration - 0.25);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  noiseSource.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+
+  noiseSource.start(now);
+  noiseSource.stop(now + duration);
+
+  // Return stop function to gracefully cut off if cancelled early
+  return () => {
+    try {
+      motorGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      noiseGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      setTimeout(() => {
+        try {
+          motorOsc1.stop();
+          motorOsc2.stop();
+          noiseSource.stop();
+        } catch (_) {}
+      }, 60);
+    } catch (_) {}
+  };
+}
