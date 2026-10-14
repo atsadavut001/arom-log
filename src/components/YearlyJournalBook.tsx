@@ -10,9 +10,37 @@ import {
   Sparkles,
   Clock,
   Bookmark,
+  BookmarkCheck,
   Edit3,
   BookMarked,
+  Printer,
+  Palette,
 } from 'lucide-react';
+import {
+  FreeScrapbookItem,
+  ScrapbookPickerModal,
+  FreeScrapbookCanvas,
+  WASHI_TAPE_PRESETS,
+  STAMP_PRESETS,
+} from './ScrapbookDecorations.tsx';
+
+export type RibbonColor = 'rose' | 'amber' | 'emerald' | 'indigo';
+
+export interface BookmarkRibbon {
+  page: number;
+  color: RibbonColor;
+  label: string;
+}
+
+export const RIBBON_COLOR_CONFIG: Record<
+  RibbonColor,
+  { bg: string; hoverBg: string; border: string; text: string; name: string }
+> = {
+  rose: { bg: 'bg-rose-600', hoverBg: 'hover:bg-rose-500', border: 'border-rose-400', text: 'text-white', name: 'แดงทับทิม' },
+  amber: { bg: 'bg-amber-500', hoverBg: 'hover:bg-amber-400', border: 'border-amber-300', text: 'text-amber-950', name: 'สีทอง' },
+  emerald: { bg: 'bg-emerald-600', hoverBg: 'hover:bg-emerald-500', border: 'border-emerald-400', text: 'text-white', name: 'เขียวมรกต' },
+  indigo: { bg: 'bg-indigo-600', hoverBg: 'hover:bg-indigo-500', border: 'border-indigo-400', text: 'text-white', name: 'ครามหลวง' },
+};
 
 interface YearlyJournalBookProps {
   entries: MoodEntry[];
@@ -128,6 +156,139 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
     setDirection(1);
   }, [selectedYear]);
 
+  // 1. Multiple Ribbon Bookmarks state (persistent per user & year)
+  const [bookmarks, setBookmarks] = useState<BookmarkRibbon[]>(() => {
+    try {
+      const raw = localStorage.getItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}`);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // ignore
+    }
+    return [{ page: 1, color: 'rose', label: 'หน้า 1: สรุปทั้งปี' }];
+  });
+
+  // Reload bookmarks when year or user changes
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}`);
+      if (raw) {
+        setBookmarks(JSON.parse(raw));
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    setBookmarks([{ page: 1, color: 'rose', label: 'หน้า 1: สรุปทั้งปี' }]);
+  }, [userProfile.userId, selectedYear]);
+
+  const saveBookmarks = (newBookmarks: BookmarkRibbon[]) => {
+    setBookmarks(newBookmarks);
+    try {
+      localStorage.setItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}`, JSON.stringify(newBookmarks));
+    } catch (err) {
+      console.error('Failed to save bookmarks:', err);
+    }
+  };
+
+  const isCurrentPageBookmarked = bookmarks.some((b) => b.page === currentPage);
+  const currentBookmark = bookmarks.find((b) => b.page === currentPage);
+
+  const handleToggleBookmark = (overrideColor?: RibbonColor) => {
+    if (isCurrentPageBookmarked) {
+      saveBookmarks(bookmarks.filter((b) => b.page !== currentPage));
+    } else {
+      let label = `หน้า ${currentPage}`;
+      if (currentPage === 1) {
+        label = 'หน้า 1: สรุปทั้งปี';
+      } else {
+        const pageEntries = entryPages[currentPage - 2] || [];
+        if (pageEntries.length > 0) {
+          const first = pageEntries[0].date.split('-').slice(1).map(Number);
+          const last = pageEntries[pageEntries.length - 1].date.split('-').slice(1).map(Number);
+          label = `หน้า ${currentPage}: ${first[1]} ${THAI_MONTHS_SHORT[first[0] - 1]} - ${last[1]} ${THAI_MONTHS_SHORT[last[0] - 1]}`;
+        }
+      }
+
+      const availableColors: RibbonColor[] = ['rose', 'amber', 'emerald', 'indigo'];
+      const usedColors = new Set(bookmarks.map((b) => b.color));
+      const nextColor = overrideColor || availableColors.find((c) => !usedColors.has(c)) || 'rose';
+
+      const newBookmark: BookmarkRibbon = {
+        page: currentPage,
+        color: nextColor,
+        label,
+      };
+      saveBookmarks([...bookmarks, newBookmark].sort((a, b) => a.page - b.page));
+    }
+  };
+
+  // 2. Free-form Scrapbook Decorator State (Washi tape, stickers, stamps - draggable & resizable anywhere on page)
+  const [isDecorating, setIsDecorating] = useState<boolean>(false);
+  const [showPickerModal, setShowPickerModal] = useState<boolean>(false);
+  const [pageDecorations, setPageDecorations] = useState<Record<number, FreeScrapbookItem[]>>(() => {
+    try {
+      const raw = localStorage.getItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}`);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}`);
+      setPageDecorations(raw ? JSON.parse(raw) : {});
+    } catch {
+      setPageDecorations({});
+    }
+  }, [userProfile.userId, selectedYear]);
+
+  const savePageDecorations = (newMap: Record<number, FreeScrapbookItem[]>) => {
+    setPageDecorations(newMap);
+    try {
+      localStorage.setItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}`, JSON.stringify(newMap));
+    } catch (err) {
+      console.error('Failed to save page decorations:', err);
+    }
+  };
+
+  const currentDecorations = pageDecorations[currentPage] || [];
+
+  const handleAddDecorationToCurrentPage = (
+    item: Omit<FreeScrapbookItem, 'id' | 'x' | 'y' | 'scale' | 'rotation'>
+  ) => {
+    const randomOffsetX = Math.floor(Math.random() * 24) - 12;
+    const randomOffsetY = Math.floor(Math.random() * 24) - 12;
+    const newItem: FreeScrapbookItem = {
+      ...item,
+      id: `deco-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      x: Math.min(85, Math.max(15, 50 + randomOffsetX)),
+      y: Math.min(80, Math.max(20, 45 + randomOffsetY)),
+      scale: 1.0,
+      rotation: Math.floor(Math.random() * 11) - 5,
+    };
+    savePageDecorations({
+      ...pageDecorations,
+      [currentPage]: [...currentDecorations, newItem],
+    });
+  };
+
+  const handleUpdateDecoration = (updated: FreeScrapbookItem) => {
+    const list = pageDecorations[currentPage] || [];
+    savePageDecorations({
+      ...pageDecorations,
+      [currentPage]: list.map((i) => (i.id === updated.id ? updated : i)),
+    });
+  };
+
+  const handleDeleteDecoration = (itemId: string) => {
+    const list = pageDecorations[currentPage] || [];
+    savePageDecorations({
+      ...pageDecorations,
+      [currentPage]: list.filter((i) => i.id !== itemId),
+    });
+  };
+
   // Handle open book
   const handleOpenBook = () => {
     playPageTurnSound();
@@ -144,6 +305,8 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
   // Turn to page with sound and direction
   const handleTurnPage = (newPage: number) => {
+    // ปิด function การเปลี่ยนหน้าเมื่ออยู่ในโหมดตกแต่งสมุด
+    if (isDecorating) return;
     if (newPage === currentPage) return;
     setDirection(newPage > currentPage ? 1 : -1);
     playPageTurnSound();
@@ -152,6 +315,9 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
   // Handle click on left or right half of paper page (กดฝั่งซ้าย = ย้อนกลับ, กดฝั่งขวา = หน้าถัดไป)
   const handlePageAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // ปิด function การเปลี่ยนหน้าเมื่ออยู่ในโหมดตกแต่งสมุด
+    if (isDecorating) return;
+
     // If text was selected by the user, don't flip
     const selection = window.getSelection();
     if (selection && selection.toString().trim().length > 0) {
@@ -160,7 +326,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
     // Ignore if clicked on an interactive element or card marked with data-no-page-turn
     const target = e.target as HTMLElement;
-    if (target.closest('button, a, input, select, textarea, [data-no-page-turn="true"]')) {
+    if (target.closest('button, a, input, select, textarea, [data-no-page-turn="true"], .scrapbook-item-wrapper')) {
       return;
     }
 
@@ -186,6 +352,9 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // ปิด function การเปลี่ยนหน้าด้วยแป้นพิมพ์เมื่ออยู่ในโหมดตกแต่งสมุด
+      if (isDecorating) return;
+
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
@@ -212,7 +381,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentPage, totalPages]);
+  }, [isOpen, currentPage, totalPages, isDecorating]);
 
   // Jump to page by date
   const jumpToDatePage = (targetDate: string) => {
@@ -293,7 +462,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4">
       {/* Top Toolbar: Year Switcher & Book Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/90 backdrop-blur-sm p-3.5 sm:p-4 rounded-3xl border border-amber-200/80 shadow-2xs">
+      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/90 backdrop-blur-sm p-3.5 sm:p-4 rounded-3xl border border-amber-200/80 shadow-2xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-300 flex items-center justify-center text-amber-700 shadow-2xs">
             <BookOpen className="w-5 h-5" />
@@ -304,30 +473,80 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
             </h3>
             <p className="text-xs text-gray-500">
               {isOpen ? `กำลังเปิดอ่านหน้า ${currentPage} / ${totalPages}` : 'สมุดปิดอยู่ • คลิกที่หน้าปกเพื่อเปิดอ่าน'}
+              {isDecorating && (
+                <span className="ml-2 font-bold text-amber-800 bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded-md text-[11px]">
+                  🎨 โหมดตกแต่ง Scrapbook เปิดอยู่
+                </span>
+              )}
             </p>
           </div>
         </div>
 
-        {/* Year Selector Dropdown & Cover Button */}
-        <div className="flex items-center gap-2 shrink-0">
-          <label htmlFor="year-select" className="text-xs font-bold text-gray-600">
-            เล่มปี:
-          </label>
-          <select
-            id="year-select"
-            value={selectedYear}
-            onChange={(e) => {
-              setSelectedYear(Number(e.target.value));
-              setIsOpen(false); // Close book when switching year
-            }}
-            className="px-3 py-1.5 rounded-xl border border-gray-300 bg-white text-xs font-bold text-gray-800 shadow-2xs focus:ring-2 focus:ring-amber-400 focus:outline-none cursor-pointer"
+        {/* Toolbar Action Buttons: Scrapbook, Print, Year Selector & Open/Close */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Scrapbook Decorate Toggle (Own profile only) */}
+          {isOwnProfile && isOpen && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsDecorating(!isDecorating)}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5 ${
+                  isDecorating
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-amber-200 ring-2 ring-amber-300'
+                    : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+                }`}
+                title="เปิด/ปิดโหมดแปะสติ๊กเกอร์และเทปวาชิตกแต่งสมุด"
+              >
+                <Palette className="w-3.5 h-3.5" />
+                <span>{isDecorating ? 'เสร็จสิ้นตกแต่ง' : 'ตกแต่งสมุด 🎨'}</span>
+              </button>
+
+              {isDecorating && (
+                <button
+                  type="button"
+                  onClick={() => setShowPickerModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black transition cursor-pointer shadow-2xs flex items-center gap-1 animate-pulse"
+                  title="เลือกสติ๊กเกอร์ / เทปวาชิมาวางบนหน้ากระดาษ"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                  <span>เพิ่มของตกแต่ง ➕</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Print PDF Button */}
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="px-3 py-1.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+            title="พิมพ์สมุดทั้งปีหรือบันทึกเป็นไฟล์ PDF สวยงาม"
           >
-            {availableYears.map((y) => (
-              <option key={y} value={y}>
-                ปี พ.ศ. {y + 543} ({y})
-              </option>
-            ))}
-          </select>
+            <Printer className="w-3.5 h-3.5 text-stone-600" />
+            <span className="hidden sm:inline">พิมพ์สมุด (PDF)</span>
+          </button>
+
+          {/* Year Selector Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="year-select" className="text-xs font-bold text-gray-600 hidden sm:inline">
+              เล่มปี:
+            </label>
+            <select
+              id="year-select"
+              value={selectedYear}
+              onChange={(e) => {
+                setSelectedYear(Number(e.target.value));
+                setIsOpen(false);
+              }}
+              className="px-3 py-1.5 rounded-xl border border-gray-300 bg-white text-xs font-bold text-gray-800 shadow-2xs focus:ring-2 focus:ring-amber-400 focus:outline-none cursor-pointer"
+            >
+              {availableYears.map((y) => (
+                <option key={y} value={y}>
+                  ปี พ.ศ. {y + 543} ({y})
+                </option>
+              ))}
+            </select>
+          </div>
 
           {isOpen ? (
             <button
@@ -357,7 +576,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
       {/* ========================================================================= */}
       {/* 3D BOOK STAGE (รองรับ Animation เปิด/ปิด สมุด และ พลิกหน้า)                 */}
       {/* ========================================================================= */}
-      <div className="relative w-full [perspective:1800px] flex justify-center">
+      <div className="no-print relative w-full [perspective:1800px] flex justify-center">
         <AnimatePresence mode="wait">
           {!isOpen ? (
             /* ========================================================================= */
@@ -526,21 +745,43 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
               style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d' }}
               className="w-full relative rounded-[2.5rem] p-3 sm:p-5 md:p-7 bg-gradient-to-br from-[#3E2310] via-[#5C3317] to-[#2B170A] shadow-2xl border-4 border-amber-950/80 ring-1 ring-amber-700/30"
             >
-              {/* Book Ribbon Bookmark Tag hanging out */}
-              <button
-                type="button"
-                onClick={() => handleTurnPage(1)}
-                className="absolute -top-3 right-8 sm:right-16 z-30 w-7 h-11 bg-rose-600 hover:bg-rose-500 hover:h-12 rounded-b-md shadow-md flex items-end justify-center pb-1 text-white text-[10px] font-bold border-t border-rose-400 select-none cursor-pointer transition-all duration-200 group"
-                title="คลิกริบบิ้นคั่นหน้าเพื่อกลับไปหน้าสรุปทั้งปี"
-              >
-                <Bookmark className="w-4 h-4 fill-white group-hover:scale-110 transition-transform" />
-              </button>
+              {/* Dynamic Book Ribbon Bookmarks hanging out from top edge */}
+              <div className="absolute -top-3 sm:-top-3.5 right-6 sm:right-14 z-30 flex items-start gap-1.5 sm:gap-2 pointer-events-auto">
+                {bookmarks.map((ribbon) => {
+                  const colorCfg = RIBBON_COLOR_CONFIG[ribbon.color] || RIBBON_COLOR_CONFIG.rose;
+                  const isCurrent = ribbon.page === currentPage;
+                  return (
+                    <button
+                      key={ribbon.page}
+                      type="button"
+                      disabled={isDecorating}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isDecorating) return;
+                        handleTurnPage(ribbon.page);
+                      }}
+                      className={`w-7 sm:w-8 ${
+                        isCurrent ? 'h-13 sm:h-14 shadow-lg scale-105' : 'h-10 sm:h-11 shadow-md opacity-90 hover:opacity-100 hover:h-12'
+                      } ${colorCfg.bg} ${colorCfg.hoverBg} ${
+                        isDecorating ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+                      } rounded-b-md flex items-end justify-center pb-1 text-white text-[10px] font-bold border-t ${colorCfg.border} select-none transition-all duration-200 group relative`}
+                      title={isDecorating ? "โหมดตกแต่งสมุด: ปิดการเปลี่ยนหน้าชั่วคราว" : `คลิกกระโดดไป ${ribbon.label}`}
+                    >
+                      <Bookmark className={`w-3.5 h-3.5 ${colorCfg.text} fill-current group-hover:scale-110 transition-transform`} />
+                      {/* Tooltip */}
+                      <span className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-stone-900/95 text-stone-100 text-[10px] rounded-lg font-sans whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition shadow-lg z-50 border border-stone-700">
+                        {ribbon.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
 
               {/* Inner Paper Page Container — EXACT SAME SIZE FOR ALL PAGES */}
               <div
                 onClick={handlePageAreaClick}
                 className="relative w-full min-h-[640px] md:h-[720px] rounded-[2rem] bg-[#FCFBF7] text-gray-800 shadow-inner border border-amber-200/90 flex flex-col justify-between overflow-hidden cursor-default select-text"
-                title="คลิกฝั่งซ้ายของกระดาษเพื่อย้อนกลับ • คลิกฝั่งขวาเพื่อไปหน้าถัดไป"
+                title={isDecorating ? "🎨 โหมดตกแต่งสมุด (ลากวาง/ขยาย/หมุนสติ๊กเกอร์ได้อิสระ • ปิดการแตะเปลี่ยนหน้า)" : "คลิกฝั่งซ้ายของกระดาษเพื่อย้อนกลับ • คลิกฝั่งขวาเพื่อไปหน้าถัดไป"}
               >
                 {/* Subtle notebook ruled background & spine crease shadow */}
                 <div
@@ -554,29 +795,40 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 {/* Spine fold gradient down the center */}
                 <div className="absolute top-0 bottom-0 left-0 sm:left-4 w-4 bg-linear-to-r from-stone-400/20 via-transparent to-transparent pointer-events-none" />
 
-                {/* LEFT SIDE FLOATING TURN TAB (กดฝั่งซ้ายของกระดาษ = ย้อนกลับ) */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (currentPage <= 1) {
-                      handleCloseBook();
-                    } else {
-                      handleTurnPage(currentPage - 1);
-                    }
-                  }}
-                  className="absolute left-1 sm:left-2.5 top-1/2 -translate-y-1/2 z-30 group/prev-tab px-1.5 py-4 sm:px-2 sm:py-5 rounded-2xl bg-amber-900/10 hover:bg-amber-800/25 active:scale-95 transition-all text-amber-950 backdrop-blur-xs border border-amber-900/15 shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer"
-                  title={currentPage <= 1 ? "คลิกฝั่งซ้ายเพื่อปิดสมุด (หน้าปก)" : "คลิกฝั่งซ้ายเพื่อย้อนกลับ (หน้าก่อนหน้า)"}
-                  aria-label={currentPage <= 1 ? "ปิดสมุด" : "หน้าก่อนหน้า"}
-                >
-                  <ChevronLeft className="w-5 h-5 text-amber-900 group-hover/prev-tab:-translate-x-0.5 transition-transform" />
-                  <span className="[writing-mode:vertical-rl] text-[9px] font-bold text-amber-900/80 tracking-widest hidden md:inline select-none">
-                    {currentPage <= 1 ? 'ปิดปก' : 'ย้อนกลับ'}
-                  </span>
-                </button>
+                {/* FREE-FORM SCRAPBOOK CANVAS (ลากวาง ย่อ/ขยาย หมุน ได้อิสระทั่วทั้งหน้ากระดาษ) */}
+                <FreeScrapbookCanvas
+                  items={currentDecorations}
+                  isDecorating={isDecorating}
+                  onUpdateItem={handleUpdateDecoration}
+                  onDeleteItem={handleDeleteDecoration}
+                  onOpenPicker={() => setShowPickerModal(true)}
+                />
 
-                {/* RIGHT SIDE FLOATING TURN TAB (กดฝั่งขวาของกระดาษ = เปิดหน้าถัดไป) */}
-                {currentPage < totalPages && (
+                {/* LEFT SIDE FLOATING TURN TAB (กดฝั่งซ้ายของกระดาษ = ย้อนกลับ) - ซ่อนชั่วคราวเมื่ออยู่ในโหมดตกแต่งเพื่อไม่ให้เกะกะ */}
+                {!isDecorating && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (currentPage <= 1) {
+                        handleCloseBook();
+                      } else {
+                        handleTurnPage(currentPage - 1);
+                      }
+                    }}
+                    className="absolute left-1 sm:left-2.5 top-1/2 -translate-y-1/2 z-30 group/prev-tab px-1.5 py-4 sm:px-2 sm:py-5 rounded-2xl bg-amber-900/10 hover:bg-amber-800/25 active:scale-95 transition-all text-amber-950 backdrop-blur-xs border border-amber-900/15 shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer"
+                    title={currentPage <= 1 ? "คลิกฝั่งซ้ายเพื่อปิดสมุด (หน้าปก)" : "คลิกฝั่งซ้ายเพื่อย้อนกลับ (หน้าก่อนหน้า)"}
+                    aria-label={currentPage <= 1 ? "ปิดสมุด" : "หน้าก่อนหน้า"}
+                  >
+                    <ChevronLeft className="w-5 h-5 text-amber-900 group-hover/prev-tab:-translate-x-0.5 transition-transform" />
+                    <span className="[writing-mode:vertical-rl] text-[9px] font-bold text-amber-900/80 tracking-widest hidden md:inline select-none">
+                      {currentPage <= 1 ? 'ปิดปก' : 'ย้อนกลับ'}
+                    </span>
+                  </button>
+                )}
+
+                {/* RIGHT SIDE FLOATING TURN TAB (กดฝั่งขวาของกระดาษ = เปิดหน้าถัดไป) - ซ่อนชั่วคราวเมื่ออยู่ในโหมดตกแต่งเพื่อไม่ให้เกะกะ */}
+                {!isDecorating && currentPage < totalPages && (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -621,18 +873,45 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 /* ========================================================================= */
                 <div className="space-y-5 animate-in fade-in duration-300 flex-1 flex flex-col">
                   {/* Book Header Stamp */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-dashed border-amber-300/80 gap-3">
-                    <div>
-                      <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-200">
-                        หน้า 1 • สรุปปฏิทินทั้งปี (Year in Pixels)
-                      </span>
-                      <h2 className="text-lg sm:text-2xl font-black text-amber-950 mt-1">
-                        สมุดบันทึกอารมณ์ประจำปี พ.ศ. {thaiBuddhistYear}
-                      </h2>
-                      <p className="text-xs text-stone-500">
-                        ของ {userProfile.displayName} ({userProfile.handle ? `@${userProfile.handle.replace(/^@/, '')}` : `@${userProfile.userId.slice(0, 6)}`})
-                      </p>
-                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-dashed border-amber-300/80 gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-200">
+                            หน้า 1 • สรุปปฏิทินทั้งปี (Year in Pixels)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleBookmark();
+                            }}
+                            className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs ${
+                              isCurrentPageBookmarked
+                                ? 'bg-rose-100 text-rose-900 border-rose-300'
+                                : 'bg-white hover:bg-amber-50 text-stone-600 border-amber-200'
+                            }`}
+                            title={isCurrentPageBookmarked ? "ยกเลิกคั่นหน้านี้" : "คั่นหน้านี้ด้วยริบบิ้น"}
+                          >
+                            {isCurrentPageBookmarked ? (
+                              <>
+                                <BookmarkCheck className="w-3 h-3 text-rose-600" />
+                                <span>คั่นหน้านี้แล้ว</span>
+                              </>
+                            ) : (
+                              <>
+                                <Bookmark className="w-3 h-3 text-stone-400" />
+                                <span>คั่นหน้านี้</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <h2 className="text-lg sm:text-2xl font-black text-amber-950 mt-1">
+                          สมุดบันทึกอารมณ์ประจำปี พ.ศ. {thaiBuddhistYear}
+                        </h2>
+                        <p className="text-xs text-stone-500">
+                          ของ {userProfile.displayName} ({userProfile.handle ? `@${userProfile.handle.replace(/^@/, '')}` : `@${userProfile.userId.slice(0, 6)}`})
+                        </p>
+                      </div>
 
                     {/* Year Key Stats Mini Cards */}
                     <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
@@ -782,6 +1061,31 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                       <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase text-amber-800 bg-amber-100/90 px-3 py-0.5 rounded-full border border-amber-200">
                         หน้า {currentPage} จาก {totalPages}
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleBookmark();
+                        }}
+                        className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs ${
+                          isCurrentPageBookmarked
+                            ? 'bg-rose-100 text-rose-900 border-rose-300'
+                            : 'bg-white hover:bg-amber-50 text-stone-600 border-amber-200'
+                        }`}
+                        title={isCurrentPageBookmarked ? "ยกเลิกคั่นหน้านี้" : "คั่นหน้านี้ด้วยริบบิ้น"}
+                      >
+                        {isCurrentPageBookmarked ? (
+                          <>
+                            <BookmarkCheck className="w-3 h-3 text-rose-600" />
+                            <span>คั่นหน้านี้แล้ว</span>
+                          </>
+                        ) : (
+                          <>
+                            <Bookmark className="w-3 h-3 text-stone-400" />
+                            <span>คั่นหน้านี้</span>
+                          </>
+                        )}
+                      </button>
                       <span className="text-xs text-stone-500 hidden sm:inline">
                         บันทึกอารมณ์ประจำปี {thaiBuddhistYear}
                       </span>
@@ -920,6 +1224,23 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                                 )}
                               </div>
                             )}
+
+                            {/* Quick Add Sticker button (Available when isDecorating mode is active) */}
+                            {isOwnProfile && isDecorating && (
+                              <div className="pt-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowPickerModal(true);
+                                  }}
+                                  className="px-2.5 py-1 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                                >
+                                  <Sparkles className="w-3 h-3 text-amber-700" />
+                                  <span>แปะสติ๊กเกอร์หน้านี้ 🎨</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -951,15 +1272,17 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
           {/* Previous Page Button (Closes book if on page 1) */}
           <button
             type="button"
+            disabled={isDecorating}
             onClick={(e) => {
               e.stopPropagation();
+              if (isDecorating) return;
               if (currentPage <= 1) {
                 handleCloseBook();
               } else {
                 handleTurnPage(currentPage - 1);
               }
             }}
-            className="px-3 sm:px-4 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300/80 shadow-2xs transition flex items-center gap-1.5 cursor-pointer font-bold"
+            className="px-3 sm:px-4 py-2 rounded-xl bg-white hover:bg-amber-50 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed border border-amber-300/80 shadow-2xs transition flex items-center gap-1.5 cursor-pointer font-bold"
           >
             <ChevronLeft className="w-4 h-4 text-amber-700" />
             <span>{currentPage <= 1 ? 'ปิดสมุด (หน้าปก)' : 'หน้าก่อนหน้า'}</span>
@@ -970,9 +1293,15 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
             <span className="px-3 py-1 rounded-full bg-white/90 border border-amber-300 shadow-2xs font-mono text-xs">
               {currentPage === 1 ? 'หน้าแรก (สรุปทั้งปี)' : `หน้า ${currentPage} / ${totalPages}`}
             </span>
-            <span className="text-[10px] text-amber-900/60 hidden sm:inline font-medium">
-              (👈 แตะฝั่งซ้าย: ย้อนกลับ • แตะฝั่งขวา: ถัดไป 👉)
-            </span>
+            {isDecorating ? (
+              <span className="text-[10px] sm:text-xs text-amber-900 font-bold flex items-center gap-1 bg-amber-200/80 px-2.5 py-1 rounded-full border border-amber-400/60 shadow-2xs">
+                🎨 กำลังอยู่ในโหมดตกแต่งสมุด (ปิดการเปลี่ยนหน้าชั่วคราว)
+              </span>
+            ) : (
+              <span className="text-[10px] text-amber-900/60 hidden sm:inline font-medium">
+                (👈 แตะฝั่งซ้าย: ย้อนกลับ • แตะฝั่งขวา: ถัดไป 👉)
+              </span>
+            )}
           </div>
 
           {/* Next Page Button */}
@@ -980,10 +1309,11 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
+              if (isDecorating) return;
               handleTurnPage(currentPage + 1);
             }}
-            disabled={currentPage >= totalPages}
-            className="px-3 sm:px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-30 disabled:cursor-not-allowed text-white shadow-2xs transition flex items-center gap-1.5 cursor-pointer font-bold"
+            disabled={isDecorating || currentPage >= totalPages}
+            className="px-3 sm:px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-2xs transition flex items-center gap-1.5 cursor-pointer font-bold"
           >
             <span>หน้าถัดไป</span>
             <ChevronRight className="w-4 h-4 text-white" />
@@ -994,6 +1324,237 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   )}
 </AnimatePresence>
 </div>
+
+      {/* SCRAPBOOK PICKER MODAL (เลือกสติ๊กเกอร์ / เทปวาชิ / แสตมป์) */}
+      {showPickerModal && (
+        <ScrapbookPickerModal
+          onClose={() => setShowPickerModal(false)}
+          onSelectTape={(tapeId, customText) => {
+            const preset = WASHI_TAPE_PRESETS.find((t) => t.id === tapeId);
+            const text = customText?.trim() || preset?.name || 'เทปวาชิ';
+            handleAddDecorationToCurrentPage({ type: 'tape', content: text, color: tapeId });
+          }}
+          onSelectSticker={(emoji) => {
+            handleAddDecorationToCurrentPage({ type: 'sticker', content: emoji });
+          }}
+          onSelectStamp={(text, styleId) => {
+            handleAddDecorationToCurrentPage({ type: 'stamp', content: text, color: styleId });
+          }}
+        />
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. PRINT-ONLY SPREAD: Rendered exclusively for window.print() (PDF Export) */}
+      {/* ========================================================================= */}
+      <div className="hidden print:block w-full text-stone-900 bg-white font-sans">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media print {
+            body {
+              background: white !important;
+              color: black !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+            @page {
+              size: A4 portrait;
+              margin: 12mm;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+          }
+        ` }} />
+
+        {/* 1. FRONT COVER (หน้าปกสมุดพิมพ์) */}
+        <div
+          className="min-h-[92vh] flex flex-col justify-between items-center text-center p-12 border-8 border-double border-amber-950 rounded-3xl bg-amber-50/20"
+          style={{ breakAfter: 'page', pageBreakAfter: 'always' }}
+        >
+          <div className="pt-10 space-y-4">
+            <div className="text-sm font-mono tracking-widest uppercase text-amber-900 border-b border-amber-900/40 pb-2 inline-block">
+              AROM LOG • ANNUAL EMOTIONAL JOURNAL
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-black text-amber-950 tracking-wide font-serif pt-4">
+              สมุดบันทึกอารมณ์
+            </h1>
+            <p className="text-xl sm:text-2xl font-bold text-amber-900/90 font-serif">
+              ประจำปี พ.ศ. {thaiBuddhistYear} (ค.ศ. {selectedYear})
+            </p>
+          </div>
+
+          <div className="py-12 space-y-4 flex flex-col items-center">
+            <div className="w-24 h-24 rounded-full border-4 border-amber-900/60 bg-amber-100 flex items-center justify-center text-5xl shadow-md">
+              {userProfile.avatarEmoji || '😊'}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-amber-950">
+                {userProfile.displayName || 'ผู้ใช้งาน'}
+              </h2>
+              <p className="text-sm text-stone-600 font-mono">
+                {userProfile.handle ? `@${userProfile.handle.replace(/^@/, '')}` : `@${userProfile.userId.slice(0, 8)}`}
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full pb-8">
+            <div className="grid grid-cols-3 gap-4 border-t-2 border-dashed border-amber-900/30 pt-6 max-w-lg mx-auto text-center">
+              <div>
+                <div className="text-xs text-amber-900 font-bold">บันทึกทั้งหมด</div>
+                <div className="text-xl font-black text-amber-950">{stats.totalDays} วัน</div>
+              </div>
+              <div>
+                <div className="text-xs text-amber-900 font-bold">คะแนนเฉลี่ย</div>
+                <div className="text-xl font-black text-amber-950">{stats.averageScore} / 10</div>
+              </div>
+              <div>
+                <div className="text-xs text-amber-900 font-bold">อารมณ์เด่น</div>
+                <div className="text-xl font-black text-amber-950">
+                  {stats.dominantMood ? `${stats.dominantMood.emoji} ${stats.dominantMood.label}` : '-'}
+                </div>
+              </div>
+            </div>
+            <p className="text-[10px] text-stone-500 font-mono mt-8">
+              พิมพ์เมื่อวันที่ {new Date().toLocaleDateString('th-TH')} • จัดทำด้วย Arom Log
+            </p>
+          </div>
+        </div>
+
+        {/* 2. WHOLE YEAR CALENDAR SUMMARY (หน้าสรุปปฏิทินทั้งปี) */}
+        <div
+          className="min-h-[92vh] flex flex-col justify-between p-6"
+          style={{ breakAfter: 'page', pageBreakAfter: 'always' }}
+        >
+          <div className="space-y-4">
+            <div className="border-b-2 border-amber-900/40 pb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-amber-950 font-serif">
+                  สรุปปฏิทินอารมณ์ทั้งปี (Year in Pixels)
+                </h2>
+                <p className="text-xs text-stone-600">
+                  ประจำปี พ.ศ. {thaiBuddhistYear} ({selectedYear})
+                </p>
+              </div>
+              <div className="text-right text-xs text-amber-900 font-bold">
+                รวม {stats.totalDays} วันบันทึก
+              </div>
+            </div>
+
+            {/* 12 Months Mini Grid */}
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              {THAI_MONTHS.map((mName, mIdx) => {
+                const daysInM = new Date(selectedYear, mIdx + 1, 0).getDate();
+                const mNumStr = String(mIdx + 1).padStart(2, '0');
+                return (
+                  <div key={mName} className="p-2 border border-stone-300 rounded-xl bg-stone-50/50">
+                    <div className="text-[11px] font-black text-amber-950 mb-1 border-b border-stone-200 pb-0.5">
+                      {mName}
+                    </div>
+                    <div className="grid grid-cols-7 gap-0.5 text-center">
+                      {['อ','จ','อ','พ','พ','ศ','ส'].map((d, i) => (
+                        <span key={i} className="text-[8px] font-bold text-stone-400">{d}</span>
+                      ))}
+                      {Array.from({ length: daysInM }, (_, i) => i + 1).map((day) => {
+                        const dateStr = `${selectedYear}-${mNumStr}-${String(day).padStart(2, '0')}`;
+                        const entry = entriesByDate.get(dateStr);
+                        const preset = entry ? MOOD_PRESETS.find((p) => p.type === entry.moodType) : null;
+                        return (
+                          <div
+                            key={day}
+                            className={`w-4 h-4 rounded text-[8px] flex items-center justify-center font-bold ${
+                              preset ? preset.badgeBg || 'bg-amber-200' : 'bg-white text-stone-300 border border-stone-100'
+                            }`}
+                            title={entry ? `${dateStr}: ${entry.moodLabel}` : undefined}
+                          >
+                            {day}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="text-center text-[10px] text-stone-400 font-mono pt-4 border-t border-stone-200">
+            Arom Log Journal • หน้าสรุปภาพรวมประจำปี พ.ศ. {thaiBuddhistYear}
+          </div>
+        </div>
+
+        {/* 3. ALL DAILY ENTRIES (บันทึกรายวันทั้งหมด เรียงจากเก่าไปใหม่) */}
+        <div className="space-y-4 pt-2">
+          <div className="text-center pb-2 border-b border-stone-300">
+            <h3 className="text-xl font-black text-amber-950 font-serif">
+              บันทึกเรื่องราวและความรู้สึกรายวัน
+            </h3>
+            <p className="text-xs text-stone-500">
+              เรียงจากวันแรกของปีสู่วันล่าสุด
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {yearEntries.map((entry) => {
+              const preset = MOOD_PRESETS.find((p) => p.type === entry.moodType);
+              const [y, m, d] = entry.date.split('-').map(Number);
+              const monthName = THAI_MONTHS[m - 1] || '';
+              const dayOfWeekIdx = new Date(y, m - 1, d).getDay();
+              const dayName = THAI_DAYS_MINI[dayOfWeekIdx] || '';
+              const dateFormatted = `วัน${dayName}ที่ ${d} ${monthName} พ.ศ. ${y + 543}`;
+
+              return (
+                <div
+                  key={entry.id || entry.date}
+                  style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                  className="p-4 border border-stone-300 rounded-2xl bg-white shadow-2xs flex gap-4 items-start"
+                >
+                  <div className="w-20 shrink-0 text-center p-2 rounded-xl bg-amber-50 border border-amber-200">
+                    <div className="text-3xl">{preset?.emoji || '✨'}</div>
+                    <div className="text-xs font-black text-amber-950 mt-1">{d} {THAI_MONTHS_SHORT[m - 1]}</div>
+                    <div className="text-[10px] text-amber-800">{entry.moodLabel}</div>
+                    <div className="text-[9px] font-bold text-amber-900 mt-0.5">{entry.moodScore}/10</div>
+                  </div>
+
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="text-xs font-bold text-stone-700">
+                      {dateFormatted}
+                    </div>
+
+                    {entry.note ? (
+                      <p className="text-xs text-stone-800 leading-relaxed whitespace-pre-wrap bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                        {entry.note}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-stone-400 italic">ไม่ได้เขียนบันทึกข้อความ</p>
+                    )}
+
+                    {entry.tags && entry.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {entry.tags.map((t) => (
+                          <span key={t} className="text-[9px] px-1.5 py-0.5 bg-stone-100 border border-stone-200 rounded">
+                            {t.startsWith('#') ? t : `#${t}`}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {entry.customDrawing && (
+                      <div className="pt-1">
+                        <img
+                          src={entry.customDrawing}
+                          alt="ภาพวาดอารมณ์"
+                          className="w-16 h-16 object-contain rounded-lg border border-stone-200"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

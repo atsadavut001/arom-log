@@ -144,6 +144,13 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   const [copiedHandle, setCopiedHandle] = useState<boolean>(false);
   const [handleError, setHandleError] = useState<string>('');
 
+  // Only the profile owner can access 'journal' tab
+  useEffect(() => {
+    if (!isOwnProfile && activeTab === 'journal') {
+      setActiveTab('posts');
+    }
+  }, [isOwnProfile, activeTab]);
+
   // 1. Real-time subscription to user's entries (or use ownEntries if viewing own profile)
   useEffect(() => {
     if (isOwnProfile && ownEntries) {
@@ -550,7 +557,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     <div className="max-w-4xl mx-auto space-y-5 animate-in fade-in pb-12">
       {/* Top Navigation Back bar if viewing another user */}
       {onBack && !isOwnProfile && (
-        <div className="flex items-center justify-between">
+        <div className="print:hidden flex items-center justify-between">
           <button
             type="button"
             onClick={onBack}
@@ -563,7 +570,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
       )}
 
       {/* 1. PROFILE HEADER CARD */}
-      <div className="bg-white rounded-3xl p-5 sm:p-7 border border-amber-200/70 shadow-sm relative overflow-hidden">
+      <div className="print:hidden bg-white rounded-3xl p-5 sm:p-7 border border-amber-200/70 shadow-sm relative overflow-hidden">
         {/* Soft background gradient glow */}
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-60 h-60 bg-amber-100/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-orange-100/30 rounded-full blur-3xl pointer-events-none" />
@@ -702,7 +709,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
       </div>
 
       {/* 2. TABS SECTION */}
-      <div className="flex items-center justify-center sm:justify-start gap-2 border-b border-gray-200/80 pb-2">
+      <div className="print:hidden flex items-center justify-center sm:justify-start gap-2 border-b border-gray-200/80 pb-2">
         {/* Tab 1: Posts (Primary Default) */}
         <button
           type="button"
@@ -717,19 +724,21 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           <span>โพสต์ ({posts.length})</span>
         </button>
 
-        {/* Tab 2: Yearly Journal */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('journal')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer ${
-            activeTab === 'journal'
-              ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>Journal รายปี</span>
-        </button>
+        {/* Tab 2: Yearly Journal (เฉพาะเจ้าของโปรไฟล์เท่านั้นที่เห็น) */}
+        {isOwnProfile && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('journal')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+              activeTab === 'journal'
+                ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Journal รายปี</span>
+          </button>
+        )}
       </div>
 
       {/* 3. CONTENT AREA */}
@@ -884,8 +893,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         </div>
       )}
 
-      {/* TAB B: YEARLY JOURNAL BOOK (Journal รายปี — สมุดบันทึกรายปี พลิกหน้าได้ หน้าแรกสรุปทั้งปี หน้าถัดๆ ไปบันทึกรายวันจากเก่าไปใหม่) */}
-      {activeTab === 'journal' && (
+      {/* TAB B: YEARLY JOURNAL BOOK (Journal รายปี — เฉพาะเจ้าของโปรไฟล์เท่านั้น) */}
+      {isOwnProfile && activeTab === 'journal' && (
         <YearlyJournalBook
           entries={entries}
           userProfile={userProfile}

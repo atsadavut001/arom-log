@@ -149,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       {/* Top Header Navbar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-2xs">
+      <header className="print:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-2xs">
         <div className="max-w-6xl mx-auto px-3 sm:px-6">
           <div className="flex items-center justify-between h-15 sm:h-16 gap-3">
             {/* Logo */}
@@ -276,7 +276,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </header>
 
       {/* Mobile Bottom Fixed Navigation Dock (Native App Style) */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 z-50 px-1 py-1 flex justify-around items-center shadow-lg safe-bottom">
+      <nav className="print:hidden lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 z-50 px-1 py-1 flex justify-around items-center shadow-lg safe-bottom">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
