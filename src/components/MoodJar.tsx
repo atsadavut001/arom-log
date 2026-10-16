@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
 import { MoodEntry, MOOD_PRESETS } from '../types.ts';
+import { MoodIcon } from './MoodIcon.tsx';
 import {
   Sparkles,
   Calendar,
@@ -9,7 +10,8 @@ import {
   Info,
   Heart,
   Smartphone,
-  Droplets
+  Droplets,
+  X,
 } from 'lucide-react';
 
 interface MoodJarProps {
@@ -32,6 +34,7 @@ export const MoodJar: React.FC<MoodJarProps> = ({
   const runnerRef = useRef<Matter.Runner | null>(null);
   const orbsMapRef = useRef<Map<number, MoodEntry>>(new Map());
   const targetGravityRef = useRef<{ x: number; y: number }>({ x: 0, y: 1.1 });
+  const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
 
   const [hoveredEntry, setHoveredEntry] = useState<MoodEntry | null>(null);
   const [isGyroActive, setIsGyroActive] = useState<boolean>(false);
@@ -191,6 +194,17 @@ export const MoodJar: React.FC<MoodJarProps> = ({
     }
     orbsMapRef.current.clear();
 
+    // Preload emoji and drawing images so they render instantly
+    monthEntries.forEach((entry) => {
+      const preset = MOOD_PRESETS.find((p) => p.type === entry.moodType);
+      const imgSrc = entry.customDrawing || preset?.emojiUrl;
+      if (imgSrc && !imageCacheRef.current.has(imgSrc)) {
+        const image = new Image();
+        image.src = imgSrc;
+        imageCacheRef.current.set(imgSrc, image);
+      }
+    });
+
     const width = 360;
     const height = 440;
 
@@ -247,8 +261,9 @@ export const MoodJar: React.FC<MoodJarProps> = ({
 
     Composite.add(engine.world, [ground, leftWall, rightWall, ceiling]);
 
-    // Create mood balls (orbs)
-    const orbRadius = monthEntries.length > 20 ? 19 : monthEntries.length > 10 ? 22 : 25;
+    // Create mood balls (orbs) - visual size vs collision boundary
+    const visualRadius = monthEntries.length > 20 ? 25 : monthEntries.length > 10 ? 29 : 33;
+    const collisionRadius = Math.round(visualRadius * 0.78);
     const bodies: Matter.Body[] = [];
 
     monthEntries.forEach((entry, idx) => {
@@ -256,15 +271,13 @@ export const MoodJar: React.FC<MoodJarProps> = ({
       const startX = jarLeft + 30 + ((idx * 37) % (jarRight - jarLeft - 60));
       const startY = jarTop + 20 + ((idx * 15) % 100);
 
-      const orb = Bodies.circle(startX, startY, orbRadius, {
+      const orb = Bodies.circle(startX, startY, collisionRadius, {
         restitution: 0.45, // Soft bouncy water-bead feel
         friction: 0.02, // Low friction so they slide and tumble effortlessly like water
         frictionAir: 0.012, // Smooth fluid glide
         density: 0.002,
         render: {
-          fillStyle: entry.moodColor || '#F59E0B',
-          strokeStyle: '#FFFFFF',
-          lineWidth: 2.5,
+          visible: false, // เอาพื้นหลังทึบของลูกบอลออก ให้เห็นเฉพาะตัว emoji
         },
       });
 
@@ -296,11 +309,26 @@ export const MoodJar: React.FC<MoodJarProps> = ({
     // Detect click / hover on orbs
     Events.on(mouseConstraint, 'mousedown', (event) => {
       const mousePosition = event.mouse.position;
+      let clickedEntry: MoodEntry | undefined;
       const clickedBody = Matter.Query.point(bodies, mousePosition)[0];
       if (clickedBody && (clickedBody as any).moodEntry) {
-        setHoveredEntry((clickedBody as any).moodEntry);
+        clickedEntry = (clickedBody as any).moodEntry;
+      } else {
+        // Fallback: check within visualRadius so clicking the visible emoji edge works reliably
+        const found = bodies.find((b) => {
+          const dx = b.position.x - mousePosition.x;
+          const dy = b.position.y - mousePosition.y;
+          return Math.sqrt(dx * dx + dy * dy) <= visualRadius;
+        });
+        if (found && (found as any).moodEntry) {
+          clickedEntry = (found as any).moodEntry;
+        }
+      }
+
+      if (clickedEntry) {
+        setHoveredEntry(clickedEntry);
         if (onSelectEntry) {
-          onSelectEntry((clickedBody as any).moodEntry);
+          onSelectEntry(clickedEntry);
         }
       }
     });
@@ -321,14 +349,59 @@ export const MoodJar: React.FC<MoodJarProps> = ({
         ctx.translate(x, y);
         ctx.rotate(angle);
 
-        // Find preset emoji
+        // Find preset emoji or custom drawing
         const preset = MOOD_PRESETS.find((p) => p.type === entry.moodType);
-        const emoji = preset ? preset.emoji : '✨';
+        const imgSrc = entry.customDrawing || preset?.emojiUrl;
+        const moodColor = entry.moodColor || preset?.color || '#F59E0B';
 
-        ctx.font = `${orbRadius * 1.05}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(emoji, 0, 1);
+        let img: HTMLImageElement | undefined;
+        if (imgSrc) {
+          img = imageCacheRef.current.get(imgSrc);
+          if (!img) {
+            img = new Image();
+            img.src = imgSrc;
+            imageCacheRef.current.set(imgSrc, img);
+          }
+        }
+
+        // 1. เพิ่มพื้นหลังเบลอฟุ้งออกด้านหลัง emoji (Blurred glow & gradient backing)
+        ctx.save();
+        ctx.shadowColor = moodColor;
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        const radGrad = ctx.createRadialGradient(0, 0, visualRadius * 0.25, 0, 0, visualRadius);
+        radGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+        radGrad.addColorStop(0.65, preset?.bgLight ? `${preset.bgLight}D9` : 'rgba(255, 255, 255, 0.55)');
+        radGrad.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
+
+        ctx.beginPath();
+        ctx.arc(0, 0, visualRadius * 0.95, 0, Math.PI * 2);
+        ctx.fillStyle = radGrad;
+        ctx.fill();
+        ctx.restore();
+
+        // 2. ทำให้รูปเป็นวงกลม (Circular clipping mask) & วาดรูป emoji
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, visualRadius, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+
+        if (img && img.complete && img.naturalWidth > 0) {
+          // ขยายรูป emoji ให้เต็มวงกลมพอดี
+          const imgSize = visualRadius * 2.05;
+          ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
+        } else {
+          const emoji = preset ? preset.emoji : '✨';
+          ctx.font = `${visualRadius * 1.5}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(emoji, 0, 1);
+        }
+
+        ctx.restore();
 
         ctx.restore();
       });
@@ -496,7 +569,15 @@ export const MoodJar: React.FC<MoodJarProps> = ({
                     className="flex items-center justify-between p-2 rounded-xl bg-white/80 border border-amber-200/50 shadow-2xs text-xs"
                   >
                     <span className="flex items-center gap-1.5 font-medium text-gray-800">
-                      <span>{preset.emoji}</span>
+                      {preset.emojiUrl ? (
+                        <img
+                          src={preset.emojiUrl}
+                          alt={preset.label}
+                          className="w-4 h-4 object-contain inline-block shrink-0"
+                        />
+                      ) : (
+                        <span>{preset.emoji}</span>
+                      )}
                       <span>{preset.label}</span>
                     </span>
                     <span className="font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded-lg text-[11px]">
@@ -515,24 +596,29 @@ export const MoodJar: React.FC<MoodJarProps> = ({
                 <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
                   วันที่ {hoveredEntry.date}
                 </span>
-                <span
-                  style={{ backgroundColor: hoveredEntry.moodColor }}
-                  className="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-xs"
-                />
+                <div className="flex items-center gap-2">
+                  <span
+                    style={{ backgroundColor: hoveredEntry.moodColor }}
+                    className="w-3.5 h-3.5 rounded-full ring-2 ring-white shadow-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setHoveredEntry(null)}
+                    className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition cursor-pointer"
+                    title="ปิดรายละเอียด"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="text-3xl">
-                  {hoveredEntry.customDrawing ? (
-                    <img
-                      src={hoveredEntry.customDrawing}
-                      alt="Face"
-                      className="w-10 h-10 rounded-full border border-amber-300 object-cover"
-                    />
-                  ) : (
-                    MOOD_PRESETS.find((p) => p.type === hoveredEntry.moodType)?.emoji || '✨'
-                  )}
-                </div>
+                <MoodIcon
+                  moodType={hoveredEntry.moodType}
+                  customDrawing={hoveredEntry.customDrawing}
+                  className="w-10 h-10"
+                  alt={hoveredEntry.moodLabel}
+                />
                 <div>
                   <h4 className="font-bold text-gray-900 text-sm">
                     {hoveredEntry.moodLabel}

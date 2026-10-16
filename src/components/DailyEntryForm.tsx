@@ -15,7 +15,9 @@ import {
   AlertCircle,
   Sparkles,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  ChevronDown,
+  Tag,
 } from 'lucide-react';
 
 interface DailyEntryFormProps {
@@ -46,6 +48,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
 
   const [selectedTags, setSelectedTags] = useState<string[]>(['#งาน']);
   const [newTagInput, setNewTagInput] = useState<string>('');
+  const [isTagsExpanded, setIsTagsExpanded] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
 
@@ -254,9 +257,6 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
             บันทึกอารมณ์ประจำวัน
           </h2>
-          <p className="text-xs md:text-sm text-gray-500 mt-0.5">
-            1 วัน = 1 บันทึกหลัก เพื่อให้สถิติสุขภาพใจสะท้อนความเป็นจริงที่สุด
-          </p>
         </div>
 
         {/* Date Selection */}
@@ -296,70 +296,147 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {/* FR2.1: Mood Selector with Emoji Mode and 0-10 Scale Mode */}
         <MoodSelector
+          key={selectedDate}
           selectedType={moodType}
           selectedScore={moodScore}
           customDrawing={customDrawing}
           onSelectMood={handleMoodSelect}
           onSelectScale={handleScaleSelect}
+          autoOpenModal={!existingEntry}
         />
 
-        {/* FR2.3: Tags & Context */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-bold text-gray-800">
-              บริบท & กิจกรรมในวันนี้ (Tags)
-            </label>
-            <span className="text-xs text-gray-500">เลือกได้หลายรายการ (สูงสุด 10)</span>
-          </div>
+        {/* FR2.3: Tags & Context (Collapsible Accordion) */}
+        <div className="rounded-2xl border border-gray-200/90 bg-stone-50/60 p-3.5 sm:p-4 space-y-3 transition-all">
+          {/* Header & Toggle */}
+          <div
+            onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+            className="flex items-center justify-between cursor-pointer select-none group"
+            role="button"
+            aria-expanded={isTagsExpanded}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsTagsExpanded(!isTagsExpanded);
+              }
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Tag className="w-4 h-4 text-amber-600 shrink-0" />
+              <label className="text-sm font-bold text-gray-800 cursor-pointer">
+                บริบท & กิจกรรมในวันนี้ (Tags)
+              </label>
+              {selectedTags.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200/70">
+                  {selectedTags.length}
+                </span>
+              )}
+            </div>
 
-          {/* Quick preset tags */}
-          <div className="flex flex-wrap gap-2">
-            {DEFAULT_TAGS.map((tag) => {
-              const isSelected = selectedTags.includes(tag);
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => toggleTag(tag)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-amber-600 text-white shadow-xs'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {tag}
-                  {isSelected && <X className="w-3 h-3 hover:text-red-200" />}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Custom tag input */}
-          <div className="flex items-center gap-2 pt-1">
-            <div className="relative flex-1 max-w-xs">
-              <input
-                type="text"
-                placeholder="เพิ่มแท็กเอง เช่น #อ่านหนังสือ"
-                value={newTagInput}
-                onChange={(e) => setNewTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddCustomTag(e);
-                  }
-                }}
-                className="w-full text-xs md:text-sm px-3.5 py-2 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+            <div className="flex items-center gap-1 text-xs font-semibold text-amber-800 group-hover:text-amber-900 transition">
+              <span>{isTagsExpanded ? 'พับเก็บ' : 'ดูทั้งหมด'}</span>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  isTagsExpanded ? 'rotate-180' : ''
+                }`}
               />
             </div>
-            <button
-              type="button"
-              onClick={handleAddCustomTag}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-xl flex items-center gap-1 transition"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              เพิ่มแท็ก
-            </button>
           </div>
+
+          {/* Collapsed state: Show preview tags (3 on mobile mode, 5 on web mode) */}
+          {!isTagsExpanded && (
+            <div className="pt-0.5 flex flex-wrap items-center gap-1.5 animate-in fade-in duration-150">
+              {Array.from(new Set([...selectedTags, ...DEFAULT_TAGS])).slice(0, 5).map((tag, index) => {
+                const isSelected = selectedTags.includes(tag);
+                const isHiddenOnMobile = index >= 3;
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-medium transition cursor-pointer items-center gap-1 ${
+                      isHiddenOnMobile ? 'hidden sm:inline-flex' : 'inline-flex'
+                    } ${
+                      isSelected
+                        ? 'bg-amber-600 text-white shadow-xs font-bold'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    <span>{tag}</span>
+                    {isSelected && <X className="w-3 h-3 hover:text-red-200 shrink-0" />}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => setIsTagsExpanded(true)}
+                className="px-2.5 py-1 rounded-xl text-xs font-bold text-amber-700 hover:text-amber-800 hover:bg-amber-100/70 bg-white border border-dashed border-amber-300 transition cursor-pointer inline-flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                <span>เพิ่มเติม...</span>
+              </button>
+            </div>
+          )}
+
+          {/* Expanded state: Show all available tags + Custom tag input */}
+          {isTagsExpanded && (
+            <div className="space-y-3 pt-1 animate-in fade-in duration-200">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>เลือกได้หลายรายการ (สูงสุด 10)</span>
+                <span>เลือกแล้ว {selectedTags.length}/10</span>
+              </div>
+
+              {/* All tags (default presets + any custom tags) */}
+              <div className="flex flex-wrap gap-2">
+                {Array.from(new Set([...DEFAULT_TAGS, ...selectedTags])).map((tag) => {
+                  const isSelected = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-amber-600 text-white shadow-xs font-bold'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      {tag}
+                      {isSelected && <X className="w-3 h-3 hover:text-red-200" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom tag input (ช่องเพิ่ม tag) */}
+              <div className="flex items-center gap-2 pt-1 border-t border-gray-200/60">
+                <div className="relative flex-1 max-w-xs">
+                  <input
+                    type="text"
+                    placeholder="เพิ่มแท็กเอง เช่น #อ่านหนังสือ"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomTag(e);
+                      }
+                    }}
+                    className="w-full text-xs md:text-sm px-3.5 py-2 rounded-xl bg-white border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddCustomTag}
+                  className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  เพิ่มแท็ก
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* FR2.4: Media & Notes */}
@@ -443,23 +520,11 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
         )}
 
         {/* Submit & Cancel Buttons */}
-        <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              disabled={isSaving}
-              className="py-3.5 px-5 rounded-2xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer sm:w-auto"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>ยกเลิก / กลับไปปฏิทิน</span>
-            </button>
-          )}
-
+        <div className="pt-2 flex flex-col items-stretch gap-2.5">
           <button
             type="submit"
             disabled={isSaving}
-            className="flex-1 py-3.5 px-6 rounded-2xl font-bold text-white bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-99 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base disabled:opacity-50 cursor-pointer"
+            className="w-full py-3.5 px-6 rounded-2xl font-bold text-white bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-99 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base disabled:opacity-50 cursor-pointer"
           >
             {isSaving ? (
               <>
@@ -473,6 +538,18 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
               </>
             )}
           </button>
+
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              disabled={isSaving}
+              className="w-full py-3 px-5 rounded-2xl font-bold text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>ยกเลิก / กลับไปปฏิทิน</span>
+            </button>
+          )}
         </div>
       </form>
     </div>

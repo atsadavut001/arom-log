@@ -1,15 +1,52 @@
-export type MoodCategory = 'happy' | 'excited' | 'calm' | 'sad' | 'anxious' | 'angry' | 'tired' | 'custom';
+import {
+  emoAngry,
+  emoBored,
+  emoComfortable,
+  emoExcited,
+  emoFun,
+  emoHappy,
+  emoLove,
+  emoSad,
+  emoShy,
+  emoSleepy,
+  emoSpeechless,
+  emoSurprised,
+  emoTired,
+  emoWorry,
+  MOOD_EMOJI_IMAGES,
+} from './assets/emojis/index.ts';
+
+export type MoodCategory =
+  | 'happy'
+  | 'love'
+  | 'excited'
+  | 'fun'
+  | 'calm'
+  | 'comfortable'
+  | 'shy'
+  | 'surprised'
+  | 'speechless'
+  | 'bored'
+  | 'sleepy'
+  | 'tired'
+  | 'anxious'
+  | 'worry'
+  | 'sad'
+  | 'angry'
+  | 'custom';
 
 export interface MoodPreset {
-  type: MoodCategory;
+  type: MoodCategory | string;
   label: string;
-  emoji: string;
+  emoji: string; // Unicode fallback
+  emojiUrl?: string; // Emoji image URL from src/assets/emojis/
   score: number; // 1 to 5
   color: string;
   bgLight: string;
   borderColor: string;
   isPositive: boolean;
   description: string;
+  badgeBg?: string;
 }
 
 export const MOOD_PRESETS: MoodPreset[] = [
@@ -17,52 +54,141 @@ export const MOOD_PRESETS: MoodPreset[] = [
     type: 'happy',
     label: 'มีความสุข',
     emoji: '😊',
+    emojiUrl: emoHappy,
     score: 5,
-    color: '#F59E0B', // Amber
+    color: '#F59E0B',
     bgLight: '#FEF3C7',
     borderColor: '#FCD34D',
     isPositive: true,
     description: 'รู้สึกสดชื่น ร่าเริง สบายใจ'
   },
   {
-    type: 'excited',
-    label: 'ตื่นเต้น / มีพลัง',
-    emoji: '🤩',
+    type: 'love',
+    label: 'มีความรัก / อบอุ่น',
+    emoji: '🥰',
+    emojiUrl: emoLove,
     score: 5,
-    color: '#EC4899', // Pink
+    color: '#EC4899',
     bgLight: '#FCE7F3',
     borderColor: '#F472B6',
     isPositive: true,
+    description: 'หัวใจฟู อบอุ่น ตกหลุมรัก'
+  },
+  {
+    type: 'excited',
+    label: 'ตื่นเต้น / มีพลัง',
+    emoji: '🤩',
+    emojiUrl: emoExcited,
+    score: 5,
+    color: '#F97316',
+    bgLight: '#FFEDD5',
+    borderColor: '#FDBA74',
+    isPositive: true,
     description: 'กระตือรือร้น มีไฟ ลุยงานเต็มที่'
+  },
+  {
+    type: 'fun',
+    label: 'สนุกสนาน / เฮฮา',
+    emoji: '🥳',
+    emojiUrl: emoFun,
+    score: 5,
+    color: '#8B5CF6',
+    bgLight: '#EDE9FE',
+    borderColor: '#C4B5FD',
+    isPositive: true,
+    description: 'หัวเราะ มีความสุข สนุกกับชีวิต'
   },
   {
     type: 'calm',
     label: 'สงบ / ผ่อนคลาย',
     emoji: '😌',
+    emojiUrl: emoComfortable,
     score: 4,
-    color: '#10B981', // Emerald
+    color: '#10B981',
     bgLight: '#D1FAE5',
     borderColor: '#6EE7B7',
     isPositive: true,
     description: 'จิตใจนิ่ง สบาย ไม่เร่งรีบ'
   },
   {
+    type: 'shy',
+    label: 'เขินอาย / ขวยเขิน',
+    emoji: '😳',
+    emojiUrl: emoShy,
+    score: 4,
+    color: '#FB7185',
+    bgLight: '#FFE4E6',
+    borderColor: '#FDA4AF',
+    isPositive: true,
+    description: 'แก้มแดง เขิน น่ารัก'
+  },
+  {
+    type: 'surprised',
+    label: 'ประหลาดใจ',
+    emoji: '😲',
+    emojiUrl: emoSurprised,
+    score: 3,
+    color: '#06B6D4',
+    bgLight: '#CFFAFE',
+    borderColor: '#67E8F9',
+    isPositive: true,
+    description: 'คาดไม่ถึง ว้าว แปลกใหม่'
+  },
+  {
+    type: 'bored',
+    label: 'เบื่อหน่าย / เซ็ง',
+    emoji: '🥱',
+    emojiUrl: emoBored,
+    score: 2,
+    color: '#9CA3AF',
+    bgLight: '#F3F4F6',
+    borderColor: '#E5E7EB',
+    isPositive: false,
+    description: 'ไม่มีอะไรทำ รู้สึกเซ็งๆ ว่างเปล่า'
+  },
+  {
+    type: 'sleepy',
+    label: 'ง่วงนอน / พักผ่อน',
+    emoji: '😪',
+    emojiUrl: emoSleepy,
+    score: 3,
+    color: '#6366F1',
+    bgLight: '#EEF2FF',
+    borderColor: '#C7D2FE',
+    isPositive: false,
+    description: 'อยากนอน หนังตาหย่อน ต้องการพักผ่อน'
+  },
+  {
     type: 'tired',
     label: 'เหนื่อยล้า / หมดพลัง',
     emoji: '😴',
+    emojiUrl: emoTired,
     score: 2,
-    color: '#6B7280', // Gray
+    color: '#6B7280',
     bgLight: '#F3F4F6',
     borderColor: '#D1D5DB',
     isPositive: false,
     description: 'เพลีย ล้า อยากพักผ่อน'
   },
   {
+    type: 'speechless',
+    label: 'พูดไม่ออก / เงียบกริบ',
+    emoji: '😶',
+    emojiUrl: emoSpeechless,
+    score: 2,
+    color: '#78716C',
+    bgLight: '#F5F5F4',
+    borderColor: '#D6D3D1',
+    isPositive: false,
+    description: 'อึ้ง จุดจุดจุด ไม่รู้จะพูดยังไง'
+  },
+  {
     type: 'anxious',
     label: 'กังวล / เครียด',
     emoji: '😰',
+    emojiUrl: emoWorry,
     score: 2,
-    color: '#8B5CF6', // Purple
+    color: '#8B5CF6',
     bgLight: '#EDE9FE',
     borderColor: '#C4B5FD',
     isPositive: false,
@@ -72,8 +198,9 @@ export const MOOD_PRESETS: MoodPreset[] = [
     type: 'sad',
     label: 'เศร้า / ดิ่ง',
     emoji: '😢',
+    emojiUrl: emoSad,
     score: 1,
-    color: '#3B82F6', // Blue
+    color: '#3B82F6',
     bgLight: '#DBEAFE',
     borderColor: '#93C5FD',
     isPositive: false,
@@ -83,8 +210,9 @@ export const MOOD_PRESETS: MoodPreset[] = [
     type: 'angry',
     label: 'โกรธ / หงุดหงิด',
     emoji: '😡',
+    emojiUrl: emoAngry,
     score: 1,
-    color: '#EF4444', // Red
+    color: '#EF4444',
     bgLight: '#FEE2E2',
     borderColor: '#FCA5A5',
     isPositive: false,
@@ -94,14 +222,51 @@ export const MOOD_PRESETS: MoodPreset[] = [
     type: 'custom',
     label: 'วาดหน้าตาเอง',
     emoji: '🎨',
+    emojiUrl: undefined,
     score: 3,
-    color: '#F97316', // Orange
+    color: '#F97316',
     bgLight: '#FFEDD5',
     borderColor: '#FDBA74',
     isPositive: true,
     description: 'วาดหน้าตาแสดงอารมณ์ของคุณเอง'
   }
 ];
+
+export { MOOD_EMOJI_IMAGES };
+
+export function getMoodEmojiImage(moodType?: string): string | undefined {
+  if (!moodType) return undefined;
+  if (moodType === 'custom') return undefined; // Hand-drawn canvas is rendered from customDrawing
+  return MOOD_EMOJI_IMAGES[moodType] || MOOD_PRESETS.find((p) => p.type === moodType)?.emojiUrl;
+}
+
+/**
+ * Resolves an avatarEmoji value (which could be an 'emo:<moodType>' ID,
+ * a moodType string, an image URL/data URI, or undefined) to a renderable image URL.
+ * Returns undefined if avatarEmoji is a standard Unicode string (e.g. '😊', '🐱').
+ */
+export function getAvatarEmojiImage(avatarEmoji?: string): string | undefined {
+  if (!avatarEmoji) return undefined;
+  if (avatarEmoji.startsWith('emo:')) {
+    const key = avatarEmoji.slice(4);
+    return MOOD_EMOJI_IMAGES[key] || getMoodEmojiImage(key);
+  }
+  if (
+    avatarEmoji.startsWith('data:') ||
+    avatarEmoji.startsWith('http://') ||
+    avatarEmoji.startsWith('https://') ||
+    avatarEmoji.startsWith('/') ||
+    avatarEmoji.includes('.png') ||
+    avatarEmoji.includes('.svg') ||
+    avatarEmoji.includes('.webp')
+  ) {
+    return avatarEmoji;
+  }
+  if (MOOD_EMOJI_IMAGES[avatarEmoji]) {
+    return MOOD_EMOJI_IMAGES[avatarEmoji];
+  }
+  return undefined;
+}
 
 export interface ScaleMoodLevel {
   score: number; // 0 to 10

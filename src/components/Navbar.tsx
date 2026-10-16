@@ -2,13 +2,12 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import { logoutUser } from '../firebase.ts';
-import { UserProfile } from '../types.ts';
+import { UserProfile, getAvatarEmojiImage } from '../types.ts';
 import {
   Sparkles,
   Calendar,
   BarChart3,
   LogOut,
-  PenTool,
   Users,
   User as UserIcon,
   Flame,
@@ -81,12 +80,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       icon: <Calendar className="w-4 h-4" />,
     },
     {
-      id: 'entry',
-      label: 'บันทึกวันนี้',
-      shortLabel: 'บันทึก',
-      icon: <PenTool className="w-4 h-4" />,
-    },
-    {
       id: 'jar',
       label: 'โหลอารมณ์',
       shortLabel: 'โหลแก้ว',
@@ -131,11 +124,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       id: 'calendar',
       label: 'ปฏิทิน',
       icon: <Calendar className="w-4 h-4" />,
-    },
-    {
-      id: 'entry',
-      label: 'บันทึก',
-      icon: <PenTool className="w-4 h-4" />,
     },
     {
       id: 'jar',
@@ -260,10 +248,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title="ไปยังโปรไฟล์ของคุณ"
               >
                 <div
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-base border border-white shadow-2xs shrink-0 select-none"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-base border border-white shadow-2xs shrink-0 select-none overflow-hidden"
                   style={{ backgroundColor: currentBg }}
                 >
-                  <span>{currentEmoji}</span>
+                  {currentUserProfile?.photoURL ? (
+                    <img
+                      src={currentUserProfile.photoURL}
+                      alt="รูปโปรไฟล์"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : getAvatarEmojiImage(currentEmoji) ? (
+                    <img
+                      src={getAvatarEmojiImage(currentEmoji)!}
+                      alt="avatar"
+                      className="w-full h-full object-contain p-0.5 select-none"
+                      draggable={false}
+                    />
+                  ) : (
+                    <span>{currentEmoji}</span>
+                  )}
                 </div>
                 <span className="hidden xl:inline text-xs font-bold text-stone-800 truncate max-w-[100px] text-left">
                   {currentName}
@@ -306,10 +309,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 {item.id === 'profile' ? (
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-xs overflow-hidden"
                     style={{ backgroundColor: currentBg }}
                   >
-                    <span>{currentEmoji}</span>
+                    {currentUserProfile?.photoURL ? (
+                      <img
+                        src={currentUserProfile.photoURL}
+                        alt="โปรไฟล์"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : getAvatarEmojiImage(currentEmoji) ? (
+                      <img
+                        src={getAvatarEmojiImage(currentEmoji)!}
+                        alt="avatar"
+                        className="w-full h-full object-contain p-0.5 select-none"
+                        draggable={false}
+                      />
+                    ) : (
+                      <span>{currentEmoji}</span>
+                    )}
                   </div>
                 ) : (
                   item.icon

@@ -14,7 +14,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
-import { UserProfile, MoodEntry, SocialPost, MOOD_PRESETS, SCALE_0_10_LEVELS, isLegacyDefaultBio } from '../types.ts';
+import { UserProfile, MoodEntry, SocialPost, MOOD_PRESETS, SCALE_0_10_LEVELS, isLegacyDefaultBio, getAvatarEmojiImage } from '../types.ts';
 import { CanvasDrawer } from './CanvasDrawer.tsx';
 import { YearlyJournalBook } from './YearlyJournalBook.tsx';
 import { PaperShredderModal } from './PaperShredderModal.tsx';
@@ -69,6 +69,15 @@ const EMOJI_AVATAR_OPTIONS = [
   '🐧', '🦥', '🦄', '🚀', '🦋', '🎈'
 ];
 
+// 3D Mood Emojis (14 presets with 3D image assets)
+export const NEW_3D_EMOJI_OPTIONS = MOOD_PRESETS.filter((p) => p.emojiUrl).map((p) => ({
+  id: `emo:${p.type}`,
+  type: p.type,
+  label: p.label,
+  emoji: p.emoji,
+  url: p.emojiUrl!,
+}));
+
 // Curated pastel background colors for avatar circle
 const AVATAR_BG_OPTIONS = [
   { name: 'เหลืองละมุน', color: '#FEF3C7', border: '#FCD34D' },
@@ -81,8 +90,12 @@ const AVATAR_BG_OPTIONS = [
   { name: 'เทาสะอาด', color: '#F1F5F9', border: '#CBD5E1' },
 ];
 
-// Helper: show the uploaded profile photo if present, otherwise fall back to the emoji avatar
-const AvatarContent: React.FC<{ photoUrl?: string; emoji: string }> = ({ photoUrl, emoji }) => {
+// Helper: show the uploaded profile photo if present, otherwise fall back to 3D emoji image or unicode emoji
+const AvatarContent: React.FC<{ photoUrl?: string; emoji: string; className?: string }> = ({
+  photoUrl,
+  emoji,
+  className = '',
+}) => {
   if (photoUrl) {
     return (
       <img
@@ -92,7 +105,18 @@ const AvatarContent: React.FC<{ photoUrl?: string; emoji: string }> = ({ photoUr
       />
     );
   }
-  return <span className="select-none filter drop-shadow-xs">{emoji}</span>;
+  const imgUrl = getAvatarEmojiImage(emoji);
+  if (imgUrl) {
+    return (
+      <img
+        src={imgUrl}
+        alt="รูป Emoji ประจำตัว"
+        className={`w-full h-full object-contain p-1.5 filter drop-shadow-xs select-none ${className}`}
+        draggable={false}
+      />
+    );
+  }
+  return <span className={`select-none filter drop-shadow-xs ${className}`}>{emoji || '😊'}</span>;
 };
 
 export const UserProfileView: React.FC<UserProfileViewProps> = ({
@@ -145,6 +169,13 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   const [isSavingProfile, setIsSavingProfile] = useState<boolean>(false);
   const [copiedHandle, setCopiedHandle] = useState<boolean>(false);
   const [handleError, setHandleError] = useState<string>('');
+  const [emojiTab, setEmojiTab] = useState<'3d' | 'classic'>(() => {
+    const cur = userProfile.avatarEmoji || '';
+    if (cur && EMOJI_AVATAR_OPTIONS.includes(cur) && cur !== '😊') {
+      return 'classic';
+    }
+    return '3d';
+  });
 
   const handleOpenEdit = () => {
     setEditDisplayName(userProfile.displayName || '');
@@ -157,6 +188,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     setEditBio(isLegacyDefaultBio(userProfile.bio) ? '' : (userProfile.bio || ''));
     setEditIsPrivate(userProfile.isPrivate === true);
     setHandleError('');
+    const cur = userProfile.avatarEmoji || '';
+    if (cur && EMOJI_AVATAR_OPTIONS.includes(cur) && cur !== '😊') {
+      setEmojiTab('classic');
+    } else {
+      setEmojiTab('3d');
+    }
     setIsEditing(true);
   };
 
@@ -1180,31 +1217,109 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 </p>
               </div>
 
-              {/* 1. Emoji Selection Grid */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                  <Smile className="w-4 h-4 text-amber-600" />
-                  <span>เลือกรูป Emoji ประจำตัว</span>
-                </label>
-                <div className="grid grid-cols-6 sm:grid-cols-9 gap-1.5 bg-gray-50 p-2.5 rounded-2xl border border-gray-200 max-h-36 overflow-y-auto">
-                  {EMOJI_AVATAR_OPTIONS.map((emoji) => {
-                    const isSelected = editAvatarEmoji === emoji;
-                    return (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => setEditAvatarEmoji(emoji)}
-                        className={`aspect-square rounded-xl text-xl flex items-center justify-center transition cursor-pointer ${
-                          isSelected
-                            ? 'bg-amber-300 shadow-xs ring-2 ring-amber-500 scale-110'
-                            : 'hover:bg-white hover:scale-105'
-                        }`}
-                      >
-                        {emoji}
-                      </button>
-                    );
-                  })}
+              {/* 1. Emoji Selection Grid with 3D and Classic Tabs */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                    <Smile className="w-4 h-4 text-amber-600" />
+                    <span>เลือกรูป Emoji ประจำตัว</span>
+                  </label>
+                  {/* Category switcher pills */}
+                  <div className="flex items-center bg-gray-100 p-0.5 rounded-xl border border-gray-200 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setEmojiTab('3d')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer ${
+                        emojiTab === '3d'
+                          ? 'bg-amber-500 text-white shadow-2xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-200" />
+                      <span>3D ใหม่ ({NEW_3D_EMOJI_OPTIONS.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEmojiTab('classic')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer ${
+                        emojiTab === 'classic'
+                          ? 'bg-amber-500 text-white shadow-2xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <span>ทั่วไป ({EMOJI_AVATAR_OPTIONS.length})</span>
+                    </button>
+                  </div>
                 </div>
+
+                {emojiTab === '3d' ? (
+                  <div className="space-y-1.5">
+                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 bg-gradient-to-b from-amber-50/50 to-orange-50/30 p-3 rounded-2xl border border-amber-200/70 max-h-48 overflow-y-auto">
+                      {NEW_3D_EMOJI_OPTIONS.map((item) => {
+                        const isSelected =
+                          editAvatarEmoji === item.id ||
+                          editAvatarEmoji === item.url ||
+                          editAvatarEmoji === item.type;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setEditAvatarEmoji(item.id)}
+                            title={item.label}
+                            className={`group relative aspect-square rounded-2xl p-1.5 flex flex-col items-center justify-center transition cursor-pointer border ${
+                              isSelected
+                                ? 'bg-amber-200/90 border-amber-400 shadow-sm ring-2 ring-amber-500 scale-105'
+                                : 'bg-white border-amber-100 hover:bg-white hover:border-amber-300 hover:scale-105 shadow-2xs'
+                            }`}
+                          >
+                            <img
+                              src={item.url}
+                              alt={item.label}
+                              className="w-8 h-8 sm:w-9 sm:h-9 object-contain select-none filter drop-shadow-xs transition-transform group-hover:scale-110"
+                              draggable={false}
+                            />
+                            <span className="text-[9px] text-gray-500 group-hover:text-amber-900 font-medium truncate w-full text-center mt-0.5 leading-tight">
+                              {item.label.split('/')[0].trim()}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {(() => {
+                      const selected3d = NEW_3D_EMOJI_OPTIONS.find(
+                        (i) =>
+                          i.id === editAvatarEmoji ||
+                          i.url === editAvatarEmoji ||
+                          i.type === editAvatarEmoji
+                      );
+                      return selected3d ? (
+                        <p className="text-[11px] text-amber-800 font-medium text-center">
+                          ✨ อิโมจิที่เลือก: <span className="font-bold">{selected3d.label}</span>
+                        </p>
+                      ) : null;
+                    })()}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-6 sm:grid-cols-9 gap-1.5 bg-gray-50 p-2.5 rounded-2xl border border-gray-200 max-h-40 overflow-y-auto">
+                    {EMOJI_AVATAR_OPTIONS.map((emoji) => {
+                      const isSelected = editAvatarEmoji === emoji;
+                      return (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => setEditAvatarEmoji(emoji)}
+                          className={`aspect-square rounded-xl text-xl flex items-center justify-center transition cursor-pointer ${
+                            isSelected
+                              ? 'bg-amber-300 shadow-xs ring-2 ring-amber-500 scale-110'
+                              : 'hover:bg-white hover:scale-105'
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* 2. Avatar Background Color Palette */}

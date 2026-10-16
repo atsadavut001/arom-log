@@ -206,7 +206,15 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 อารมณ์เด่น
               </span>
               <div className="my-2 sm:my-3 flex items-center gap-2 sm:gap-3">
-                <span className="text-2xl sm:text-3xl shrink-0">{dominantPreset?.emoji || '✨'}</span>
+                {dominantPreset?.emojiUrl ? (
+                  <img
+                    src={dominantPreset.emojiUrl}
+                    alt={dominantPreset.label}
+                    className="w-8 h-8 sm:w-9 sm:h-9 object-contain shrink-0"
+                  />
+                ) : (
+                  <span className="text-2xl sm:text-3xl shrink-0">{dominantPreset?.emoji || '✨'}</span>
+                )}
                 <div>
                   <div className="font-extrabold text-gray-900 text-xs sm:text-base line-clamp-1">
                     {dominantPreset?.label || 'ไม่มีข้อมูล'}

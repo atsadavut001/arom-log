@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MoodEntry, MOOD_PRESETS } from '../types.ts';
+import { MoodIcon } from './MoodIcon.tsx';
 import { User } from 'firebase/auth';
 import {
   ChevronLeft,
@@ -182,7 +183,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     onSelectDateForEdit(dayStr);
                   }
                 }}
-                className={`bg-white min-h-[56px] sm:min-h-[75px] md:min-h-[95px] p-1 sm:p-2 relative flex flex-col justify-between transition-all group select-none ${
+                className={`bg-white min-h-[64px] xs:min-h-[72px] sm:min-h-[85px] md:min-h-[105px] p-1 sm:p-2 relative flex flex-col justify-between transition-all group select-none ${
                   isFuture
                     ? 'opacity-40 cursor-not-allowed bg-gray-50/40'
                     : !entry && (readOnly || !onSelectDateForEdit)
@@ -214,17 +215,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <div className="flex-1 flex flex-col items-center justify-center py-0.5">
                   {entry ? (
                     <div className="flex flex-col items-center">
-                      {entry.customDrawing ? (
-                        <img
-                          src={entry.customDrawing}
-                          alt="Custom Face"
-                          className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border border-amber-300 shadow-2xs object-cover group-hover:scale-110 transition-transform"
-                        />
-                      ) : (
-                        <span className="text-xl sm:text-2xl md:text-3xl filter drop-shadow-2xs group-hover:scale-115 transition-transform">
-                          {MOOD_PRESETS.find((p) => p.type === entry.moodType)?.emoji || '😊'}
-                        </span>
-                      )}
+                      <MoodIcon
+                        moodType={entry.moodType}
+                        customDrawing={entry.customDrawing}
+                        className="w-8.5 h-8.5 xs:w-9.5 xs:h-9.5 sm:w-12 sm:h-12 md:w-14 md:h-14 group-hover:scale-110 transition-transform filter drop-shadow-2xs"
+                        alt={entry.moodLabel}
+                      />
                       <span className="text-[9px] sm:text-[10px] md:text-[11px] font-semibold text-gray-700 truncate mt-0.5 max-w-[42px] sm:max-w-[55px] text-center hidden xs:block">
                         {entry.moodLabel}
                       </span>
@@ -269,17 +265,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
             {/* Mood Header */}
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
-              {activeEntryModal.customDrawing ? (
-                <img
-                  src={activeEntryModal.customDrawing}
-                  alt="Custom Drawing"
-                  className="w-12 h-12 rounded-full border-2 border-amber-400 object-cover"
-                />
-              ) : (
-                <span className="text-4xl">
-                  {MOOD_PRESETS.find((p) => p.type === activeEntryModal.moodType)?.emoji || '✨'}
-                </span>
-              )}
+              <MoodIcon
+                moodType={activeEntryModal.moodType}
+                customDrawing={activeEntryModal.customDrawing}
+                className="w-14 h-14 sm:w-16 sm:h-16"
+                alt={activeEntryModal.moodLabel}
+              />
               <div>
                 <h3 className="font-bold text-gray-900 text-base">
                   {activeEntryModal.moodLabel}

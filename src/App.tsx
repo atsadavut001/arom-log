@@ -605,10 +605,6 @@ export default function App() {
                   entries={entries}
                   selectedMonth={selectedMonth}
                   onMonthChange={setSelectedMonth}
-                  onSelectEntry={(entry) => {
-                    setSelectedDate(entry.date);
-                    navigate(`/entry/${entry.date}`);
-                  }}
                 />
               }
             />

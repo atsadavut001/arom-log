@@ -1,11 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Eraser, Pen, RotateCcw, Trash2, Check, Sparkles, Scissors } from 'lucide-react';
+import { Eraser, Pen, RotateCcw, Trash2, Check, Sparkles, Scissors, ChevronLeft } from 'lucide-react';
+import { SCALE_0_10_LEVELS } from '../types.ts';
 
 interface CanvasDrawerProps {
   initialDrawing?: string;
-  onSaveDrawing: (dataUrl: string) => void;
+  onSaveDrawing: (dataUrl: string, score?: number) => void;
   onCancel?: () => void;
   onShredDraft?: (dataUrl?: string) => void;
+  // Mood flow: score rating & back navigation
+  score?: number;
+  onScoreChange?: (score: number) => void;
+  onBack?: () => void;
+  confirmButtonText?: string;
 }
 
 const BRUSH_COLORS = [
@@ -24,6 +30,10 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
   onSaveDrawing,
   onCancel,
   onShredDraft,
+  score,
+  onScoreChange,
+  onBack,
+  confirmButtonText,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -32,6 +42,11 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
   const [isEraser, setIsEraser] = useState<boolean>(false);
   const [history, setHistory] = useState<ImageData[]>([]);
   const [historyStep, setHistoryStep] = useState<number>(-1);
+
+  // Find currently matched scale level if score is provided
+  const clampedScore = score !== undefined ? Math.max(0, Math.min(10, Math.round(score))) : 5;
+  const currentScaleLevel =
+    SCALE_0_10_LEVELS.find((l) => l.score === clampedScore) || SCALE_0_10_LEVELS[5];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -174,7 +189,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png', 0.85);
-    onSaveDrawing(dataUrl);
+    onSaveDrawing(dataUrl, score);
   };
 
   return (
@@ -304,40 +319,104 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
           </div>
         </div>
 
-        {/* Done / Save Canvas */}
-        <div className="flex items-center justify-end gap-2 pt-2">
-          {onShredDraft && (
+        {/* Optional Mood Score Rating bar (0 - 10) */}
+        {score !== undefined && onScoreChange && (
+          <div className="space-y-2 pt-3 border-t border-amber-200/80">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-800">
+                  ให้คะแนนอารมณ์นี้ (0 - 10)
+                </span>
+                <span
+                  style={{ backgroundColor: currentScaleLevel.color }}
+                  className="px-2 py-0.5 rounded-full text-white text-[11px] font-black shadow-2xs"
+                >
+                  {clampedScore} / 10
+                </span>
+              </div>
+              <span className="text-[11px] font-semibold text-gray-600 truncate max-w-[150px]">
+                {currentScaleLevel.label.replace(/^\d+\/10\s*-\s*/, '')}
+              </span>
+            </div>
+
+            {/* Quick Click Number Pills 0 to 10 */}
+            <div className="grid grid-cols-6 sm:grid-cols-11 gap-1">
+              {SCALE_0_10_LEVELS.map((level) => {
+                const isSelected = clampedScore === level.score;
+                return (
+                  <button
+                    key={level.score}
+                    type="button"
+                    onClick={() => onScoreChange(level.score)}
+                    style={{
+                      backgroundColor: isSelected ? level.color : '#FFFFFF',
+                      color: isSelected ? '#FFFFFF' : '#374151',
+                      borderColor: isSelected ? level.color : '#E5E7EB',
+                    }}
+                    className={`py-1.5 rounded-xl border text-xs font-black transition cursor-pointer flex items-center justify-center select-none ${
+                      isSelected
+                        ? 'ring-2 ring-offset-1 shadow-xs scale-105'
+                        : 'hover:bg-gray-100 hover:border-gray-300 active:scale-95'
+                    }`}
+                    title={level.label}
+                  >
+                    <span>{level.score}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons: Back + Done */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-amber-200/70">
+          {onBack ? (
             <button
               type="button"
-              onClick={() => {
-                const canvas = canvasRef.current;
-                const dataUrl = canvas ? canvas.toDataURL('image/png') : undefined;
-                onShredDraft(dataUrl);
-              }}
-              className="px-3.5 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-              title="เอาโพสที่ยังไม่โพสเข้าเครื่องบด"
+              onClick={onBack}
+              className="px-4 py-2.5 text-xs md:text-sm font-bold text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
             >
-              <Scissors className="w-3.5 h-3.5 text-rose-600" />
-              <span>บดทิ้ง</span>
+              <ChevronLeft className="w-4 h-4 text-stone-500" />
+              <span>ย้อนกลับ</span>
             </button>
+          ) : (
+            <div />
           )}
-          {onCancel && (
+
+          <div className="flex items-center gap-2">
+            {onShredDraft && (
+              <button
+                type="button"
+                onClick={() => {
+                  const canvas = canvasRef.current;
+                  const dataUrl = canvas ? canvas.toDataURL('image/png') : undefined;
+                  onShredDraft(dataUrl);
+                }}
+                className="px-3.5 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                title="เอาโพสที่ยังไม่โพสเข้าเครื่องบด"
+              >
+                <Scissors className="w-3.5 h-3.5 text-rose-600" />
+                <span>บดทิ้ง</span>
+              </button>
+            )}
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 text-xs font-medium text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl transition"
+              >
+                ยกเลิก
+              </button>
+            )}
             <button
               type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-xs font-medium text-gray-600 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl transition"
+              onClick={handleConfirm}
+              className="px-6 py-2.5 text-xs md:text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 active:scale-95 rounded-xl shadow-xs flex items-center gap-1.5 transition cursor-pointer"
             >
-              ยกเลิก
+              <Check className="w-4 h-4" />
+              <span>{confirmButtonText || 'เสร็จสิ้น'}</span>
             </button>
-          )}
-          <button
-            type="button"
-            onClick={handleConfirm}
-            className="px-5 py-2 text-xs md:text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 active:scale-98 rounded-xl shadow-sm flex items-center gap-1.5 transition"
-          >
-            <Check className="w-4 h-4" />
-            ใช้อารมณ์ที่วาดนี้
-          </button>
+          </div>
         </div>
       </div>
     </div>

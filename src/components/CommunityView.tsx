@@ -12,7 +12,7 @@ import {
   where
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
-import { UserProfile, isLegacyDefaultBio } from '../types.ts';
+import { UserProfile, isLegacyDefaultBio, getAvatarEmojiImage } from '../types.ts';
 import { UserProfileView } from './UserProfileView.tsx';
 import {
   Users,
@@ -195,8 +195,15 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                   alt="รูปโปรไฟล์ของฉัน"
                   className="w-full h-full object-cover rounded-full"
                 />
+              ) : getAvatarEmojiImage(currentUserProfile.avatarEmoji) ? (
+                <img
+                  src={getAvatarEmojiImage(currentUserProfile.avatarEmoji)!}
+                  alt="รูปโปรไฟล์ของฉัน"
+                  className="w-full h-full object-contain p-0.5 select-none"
+                  draggable={false}
+                />
               ) : (
-                currentUserProfile.avatarEmoji || '😊'
+                <span>{currentUserProfile.avatarEmoji || '😊'}</span>
               )}
             </div>
             <span>โปรไฟล์ของฉัน</span>
@@ -302,6 +309,13 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                         src={user.photoURL}
                         alt={`รูปโปรไฟล์ของ ${user.displayName}`}
                         className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : getAvatarEmojiImage(userEmoji) ? (
+                      <img
+                        src={getAvatarEmojiImage(userEmoji)!}
+                        alt={`รูปโปรไฟล์ของ ${user.displayName}`}
+                        className="w-full h-full object-contain p-1.5 select-none"
+                        draggable={false}
                       />
                     ) : (
                       <span className="filter drop-shadow-2xs select-none">{userEmoji}</span>

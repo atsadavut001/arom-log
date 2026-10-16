@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MoodEntry, UserProfile, MOOD_PRESETS } from '../types.ts';
+import { MoodEntry, UserProfile, MOOD_PRESETS, getAvatarEmojiImage } from '../types.ts';
+import { MoodIcon } from './MoodIcon.tsx';
 import { playPageTurnSound, playBookCloseSound } from '../utils/audio.ts';
 import {
   BookOpen,
@@ -681,6 +682,13 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                           alt={userProfile.displayName}
                           className="w-full h-full object-cover"
                         />
+                      ) : getAvatarEmojiImage(userProfile.avatarEmoji) ? (
+                        <img
+                          src={getAvatarEmojiImage(userProfile.avatarEmoji)!}
+                          alt={userProfile.displayName}
+                          className="w-full h-full object-contain p-1.5 select-none"
+                          draggable={false}
+                        />
                       ) : (
                         <span>{userProfile.avatarEmoji || '😊'}</span>
                       )}
@@ -930,8 +938,16 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                       {stats.dominantMood && (
                         <div className="px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-center">
                           <div className="text-[10px] text-orange-800 font-bold">อารมณ์เด่น</div>
-                          <div className="text-sm font-black text-gray-900 flex items-center gap-1 justify-center">
-                            <span>{stats.dominantMood.emoji}</span>
+                          <div className="text-sm font-black text-gray-900 flex items-center gap-1.5 justify-center">
+                            {stats.dominantMood.emojiUrl ? (
+                              <img
+                                src={stats.dominantMood.emojiUrl}
+                                alt={stats.dominantMood.label}
+                                className="w-5 h-5 object-contain inline-block shrink-0"
+                              />
+                            ) : (
+                              <span>{stats.dominantMood.emoji}</span>
+                            )}
                             <span className="text-xs hidden md:inline truncate max-w-[60px]">
                               {stats.dominantMood.label}
                             </span>
@@ -1040,7 +1056,16 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                             className="w-2.5 h-2.5 rounded-full inline-block"
                             style={{ backgroundColor: preset.color }}
                           />
-                          <span>{preset.emoji} {preset.label}</span>
+                          {preset.emojiUrl ? (
+                            <img
+                              src={preset.emojiUrl}
+                              alt={preset.label}
+                              className="w-3.5 h-3.5 object-contain inline-block shrink-0"
+                            />
+                          ) : (
+                            <span>{preset.emoji}</span>
+                          )}
+                          <span>{preset.label}</span>
                         </span>
                       ))}
                     </div>
@@ -1136,8 +1161,13 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         >
                           {/* Left: Date Stamp & Mood Emoji Ribbon */}
                           <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1.5 shrink-0 w-full sm:w-28 p-2 rounded-xl bg-amber-50/70 border border-amber-200 text-center">
-                            <div className="text-2xl sm:text-3xl filter drop-shadow-2xs">
-                              {preset?.emoji || '✨'}
+                            <div className="flex justify-center">
+                              <MoodIcon
+                                moodType={entry.moodType}
+                                customDrawing={entry.customDrawing}
+                                className="w-8 h-8 sm:w-9 sm:h-9"
+                                alt={entry.moodLabel}
+                              />
                             </div>
                             <div>
                               <div className="text-xs font-extrabold text-amber-950">
@@ -1385,8 +1415,23 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
           </div>
 
           <div className="py-12 space-y-4 flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full border-4 border-amber-900/60 bg-amber-100 flex items-center justify-center text-5xl shadow-md">
-              {userProfile.avatarEmoji || '😊'}
+            <div className="w-24 h-24 rounded-full border-4 border-amber-900/60 bg-amber-100 flex items-center justify-center text-5xl shadow-md overflow-hidden">
+              {userProfile.photoURL ? (
+                <img
+                  src={userProfile.photoURL}
+                  alt={userProfile.displayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : getAvatarEmojiImage(userProfile.avatarEmoji) ? (
+                <img
+                  src={getAvatarEmojiImage(userProfile.avatarEmoji)!}
+                  alt={userProfile.displayName}
+                  className="w-full h-full object-contain p-2 select-none"
+                  draggable={false}
+                />
+              ) : (
+                <span>{userProfile.avatarEmoji || '😊'}</span>
+              )}
             </div>
             <div>
               <h2 className="text-2xl font-bold text-amber-950">
@@ -1410,8 +1455,17 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
               </div>
               <div>
                 <div className="text-xs text-amber-900 font-bold">อารมณ์เด่น</div>
-                <div className="text-xl font-black text-amber-950">
-                  {stats.dominantMood ? `${stats.dominantMood.emoji} ${stats.dominantMood.label}` : '-'}
+                <div className="text-xl font-black text-amber-950 flex items-center justify-center gap-2">
+                  {stats.dominantMood?.emojiUrl ? (
+                    <img
+                      src={stats.dominantMood.emojiUrl}
+                      alt={stats.dominantMood.label}
+                      className="w-6 h-6 object-contain inline-block"
+                    />
+                  ) : (
+                    <span>{stats.dominantMood?.emoji}</span>
+                  )}
+                  <span>{stats.dominantMood ? stats.dominantMood.label : '-'}</span>
                 </div>
               </div>
             </div>
@@ -1509,8 +1563,13 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                   style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
                   className="p-4 border border-stone-300 rounded-2xl bg-white shadow-2xs flex gap-4 items-start"
                 >
-                  <div className="w-20 shrink-0 text-center p-2 rounded-xl bg-amber-50 border border-amber-200">
-                    <div className="text-3xl">{preset?.emoji || '✨'}</div>
+                  <div className="w-20 shrink-0 text-center p-2 rounded-xl bg-amber-50 border border-amber-200 flex flex-col items-center">
+                    <MoodIcon
+                      moodType={entry.moodType}
+                      customDrawing={entry.customDrawing}
+                      className="w-8 h-8"
+                      alt={entry.moodLabel}
+                    />
                     <div className="text-xs font-black text-amber-950 mt-1">{d} {THAI_MONTHS_SHORT[m - 1]}</div>
                     <div className="text-[10px] text-amber-800">{entry.moodLabel}</div>
                     <div className="text-[9px] font-bold text-amber-900 mt-0.5">{entry.moodScore}/10</div>
