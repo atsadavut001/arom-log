@@ -5,19 +5,20 @@ import {
   emoExcited,
   emoFun,
   emoHappy,
-  emoLove,
+  emoIndifferent,
   emoSad,
-  emoShy,
   emoSleepy,
   emoSpeechless,
-  emoSurprised,
   emoTired,
+  emoUnwell,
   emoWorry,
   MOOD_EMOJI_IMAGES,
 } from './assets/emojis/index.ts';
 
 export type MoodCategory =
   | 'happy'
+  | 'indifferent'
+  | 'unwell'
   | 'love'
   | 'excited'
   | 'fun'
@@ -63,18 +64,6 @@ export const MOOD_PRESETS: MoodPreset[] = [
     description: 'รู้สึกสดชื่น ร่าเริง สบายใจ'
   },
   {
-    type: 'love',
-    label: 'มีความรัก / อบอุ่น',
-    emoji: '🥰',
-    emojiUrl: emoLove,
-    score: 5,
-    color: '#EC4899',
-    bgLight: '#FCE7F3',
-    borderColor: '#F472B6',
-    isPositive: true,
-    description: 'หัวใจฟู อบอุ่น ตกหลุมรัก'
-  },
-  {
     type: 'excited',
     label: 'ตื่นเต้น / มีพลัง',
     emoji: '🤩',
@@ -111,28 +100,16 @@ export const MOOD_PRESETS: MoodPreset[] = [
     description: 'จิตใจนิ่ง สบาย ไม่เร่งรีบ'
   },
   {
-    type: 'shy',
-    label: 'เขินอาย / ขวยเขิน',
-    emoji: '😳',
-    emojiUrl: emoShy,
-    score: 4,
-    color: '#FB7185',
-    bgLight: '#FFE4E6',
-    borderColor: '#FDA4AF',
-    isPositive: true,
-    description: 'แก้มแดง เขิน น่ารัก'
-  },
-  {
-    type: 'surprised',
-    label: 'ประหลาดใจ',
-    emoji: '😲',
-    emojiUrl: emoSurprised,
+    type: 'indifferent',
+    label: 'เฉยๆ',
+    emoji: '😐',
+    emojiUrl: emoIndifferent,
     score: 3,
-    color: '#06B6D4',
-    bgLight: '#CFFAFE',
-    borderColor: '#67E8F9',
+    color: '#A3A3A3',
+    bgLight: '#F5F5F5',
+    borderColor: '#D4D4D4',
     isPositive: true,
-    description: 'คาดไม่ถึง ว้าว แปลกใหม่'
+    description: 'รู้สึกเฉยๆ ไม่สุขหรือเศร้าเป็นพิเศษ'
   },
   {
     type: 'bored',
@@ -205,6 +182,18 @@ export const MOOD_PRESETS: MoodPreset[] = [
     borderColor: '#93C5FD',
     isPositive: false,
     description: 'เหงา หดหู่ ไม่ค่อยมีความสุข'
+  },
+  {
+    type: 'unwell',
+    label: 'ไม่สบาย',
+    emoji: '🤒',
+    emojiUrl: emoUnwell,
+    score: 2,
+    color: '#14B8A6',
+    bgLight: '#CCFBF1',
+    borderColor: '#5EEAD4',
+    isPositive: false,
+    description: 'รู้สึกไม่สบาย ร่างกายไม่ค่อยแข็งแรง'
   },
   {
     type: 'angry',

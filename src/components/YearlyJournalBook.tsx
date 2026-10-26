@@ -37,10 +37,10 @@ export const RIBBON_COLOR_CONFIG: Record<
   RibbonColor,
   { bg: string; hoverBg: string; border: string; text: string; name: string }
 > = {
-  rose: { bg: 'bg-rose-600', hoverBg: 'hover:bg-rose-500', border: 'border-rose-400', text: 'text-white', name: 'แดงทับทิม' },
-  amber: { bg: 'bg-amber-500', hoverBg: 'hover:bg-amber-400', border: 'border-amber-300', text: 'text-amber-950', name: 'สีทอง' },
-  emerald: { bg: 'bg-emerald-600', hoverBg: 'hover:bg-emerald-500', border: 'border-emerald-400', text: 'text-white', name: 'เขียวมรกต' },
-  indigo: { bg: 'bg-indigo-600', hoverBg: 'hover:bg-indigo-500', border: 'border-indigo-400', text: 'text-white', name: 'ครามหลวง' },
+  rose: { bg: 'bg-rose-300', hoverBg: 'hover:bg-rose-400', border: 'border-rose-200', text: 'text-white', name: 'ชมพู' },
+  amber: { bg: 'bg-amber-300', hoverBg: 'hover:bg-amber-400', border: 'border-amber-200', text: 'text-slate-700', name: 'เหลือง' },
+  emerald: { bg: 'bg-emerald-300', hoverBg: 'hover:bg-emerald-400', border: 'border-emerald-200', text: 'text-white', name: 'เขียว' },
+  indigo: { bg: 'bg-indigo-300', hoverBg: 'hover:bg-indigo-400', border: 'border-indigo-200', text: 'text-white', name: 'ฟ้า' },
 };
 
 interface YearlyJournalBookProps {
@@ -63,6 +63,14 @@ const THAI_MONTHS_SHORT = [
 const THAI_DAYS_MINI = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 const ENTRIES_PER_PAGE = 3;
+const COVER_COLOR_PRESETS = [
+  { name: 'ชมพูพาสเทล', color: '#FCE7F3' },
+  { name: 'ฟ้ามิ้นต์', color: '#E0F2FE' },
+  { name: 'เขียวเซจ', color: '#D1FAE5' },
+  { name: 'เหลืองวานิลลา', color: '#FEF3C7' },
+  { name: 'ม่วงลาเวนเดอร์', color: '#EDE9FE' },
+  { name: 'พีช', color: '#FFEDD5' },
+];
 
 // Directional 3D page flip animation variants
 const pageTurnVariants = {
@@ -103,6 +111,18 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   // Current calendar year (e.g. 2026)
   const currentSystemYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(currentSystemYear);
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [coverColor, setCoverColor] = useState<string>(() => {
+    try {
+      return localStorage.getItem(`arom_journal_cover_${userProfile.userId}`) || COVER_COLOR_PRESETS[0].color;
+    } catch {
+      return COVER_COLOR_PRESETS[0].color;
+    }
+  });
+
+  const monthName = THAI_MONTHS[selectedMonth - 1];
+  const monthNameShort = THAI_MONTHS_SHORT[selectedMonth - 1];
+  const monthPrefix = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-`;
 
   // Book open/closed state (Starts closed at Front Cover: หน้าปกหนังสือ)
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -121,13 +141,10 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
     return Array.from(years).sort((a, b) => b - a);
   }, [entries, currentSystemYear]);
 
-  // Filter entries for selected year only & SORT: จากเก่าไปใหม่ (Oldest -> Newest)
-  const yearEntries = useMemo(() => {
-    const yearPrefix = `${selectedYear}-`;
-    return entries
-      .filter((e) => e.date.startsWith(yearPrefix))
-      .sort((a, b) => a.date.localeCompare(b.date)); // จากเก่าไปใหม่ (Jan -> Dec)
-  }, [entries, selectedYear]);
+  // Filter entries for the selected month and sort from oldest to newest.
+  const yearEntries = useMemo(() => entries
+    .filter((e) => e.date.startsWith(monthPrefix))
+    .sort((a, b) => a.date.localeCompare(b.date)), [entries, monthPrefix]);
 
   // Lookup map for fast date access (YYYY-MM-DD -> MoodEntry)
   const entriesByDate = useMemo(() => {
@@ -151,27 +168,27 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   const totalPages = Math.max(1, 1 + entryPages.length);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Reset page when year changes
+  // Reset page when the selected month changes.
   useEffect(() => {
     setCurrentPage(1);
     setDirection(1);
-  }, [selectedYear]);
+  }, [selectedYear, selectedMonth]);
 
   // 1. Multiple Ribbon Bookmarks state (persistent per user & year)
   const [bookmarks, setBookmarks] = useState<BookmarkRibbon[]>(() => {
     try {
-      const raw = localStorage.getItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}`);
+      const raw = localStorage.getItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}_${selectedMonth}`);
       if (raw) return JSON.parse(raw);
     } catch {
       // ignore
     }
-    return [{ page: 1, color: 'rose', label: 'หน้า 1: สรุปทั้งปี' }];
+    return [{ page: 1, color: 'rose', label: `หน้า 1: สรุปเดือน${monthName}` }];
   });
 
   // Reload bookmarks when year or user changes
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}`);
+      const raw = localStorage.getItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}_${selectedMonth}`);
       if (raw) {
         setBookmarks(JSON.parse(raw));
         return;
@@ -179,13 +196,22 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
     } catch {
       // ignore
     }
-    setBookmarks([{ page: 1, color: 'rose', label: 'หน้า 1: สรุปทั้งปี' }]);
-  }, [userProfile.userId, selectedYear]);
+    setBookmarks([{ page: 1, color: 'rose', label: `หน้า 1: สรุปเดือน${monthName}` }]);
+  }, [userProfile.userId, selectedYear, selectedMonth, monthName]);
+
+  const updateCoverColor = (color: string) => {
+    setCoverColor(color);
+    try {
+      localStorage.setItem(`arom_journal_cover_${userProfile.userId}`, color);
+    } catch (err) {
+      console.error('Failed to save journal cover color:', err);
+    }
+  };
 
   const saveBookmarks = (newBookmarks: BookmarkRibbon[]) => {
     setBookmarks(newBookmarks);
     try {
-      localStorage.setItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}`, JSON.stringify(newBookmarks));
+      localStorage.setItem(`arom_bookmarks_${userProfile.userId}_${selectedYear}_${selectedMonth}`, JSON.stringify(newBookmarks));
     } catch (err) {
       console.error('Failed to save bookmarks:', err);
     }
@@ -200,7 +226,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
     } else {
       let label = `หน้า ${currentPage}`;
       if (currentPage === 1) {
-        label = 'หน้า 1: สรุปทั้งปี';
+        label = `หน้า 1: สรุปเดือน${monthName}`;
       } else {
         const pageEntries = entryPages[currentPage - 2] || [];
         if (pageEntries.length > 0) {
@@ -228,7 +254,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   const [showPickerModal, setShowPickerModal] = useState<boolean>(false);
   const [pageDecorations, setPageDecorations] = useState<Record<number, FreeScrapbookItem[]>>(() => {
     try {
-      const raw = localStorage.getItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}`);
+      const raw = localStorage.getItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}_${selectedMonth}`);
       return raw ? JSON.parse(raw) : {};
     } catch {
       return {};
@@ -237,17 +263,17 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}`);
+      const raw = localStorage.getItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}_${selectedMonth}`);
       setPageDecorations(raw ? JSON.parse(raw) : {});
     } catch {
       setPageDecorations({});
     }
-  }, [userProfile.userId, selectedYear]);
+  }, [userProfile.userId, selectedYear, selectedMonth]);
 
   const savePageDecorations = (newMap: Record<number, FreeScrapbookItem[]>) => {
     setPageDecorations(newMap);
     try {
-      localStorage.setItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}`, JSON.stringify(newMap));
+      localStorage.setItem(`arom_scrapbook_pages_${userProfile.userId}_${selectedYear}_${selectedMonth}`, JSON.stringify(newMap));
     } catch (err) {
       console.error('Failed to save page decorations:', err);
     }
@@ -384,25 +410,14 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, currentPage, totalPages, isDecorating]);
 
-  // Jump to page by date
+  // Jump to the page containing a date, or open the daily entry editor when it is empty.
   const jumpToDatePage = (targetDate: string) => {
     const index = yearEntries.findIndex((e) => e.date === targetDate);
     if (index !== -1) {
       const pageIndex = Math.floor(index / ENTRIES_PER_PAGE) + 2;
       handleTurnPage(Math.min(totalPages, pageIndex));
-    }
-  };
-
-  // Jump to month in journal
-  const jumpToMonth = (monthIndex: number) => {
-    const monthStr = String(monthIndex + 1).padStart(2, '0');
-    const targetPrefix = `${selectedYear}-${monthStr}`;
-    const firstIndex = yearEntries.findIndex((e) => e.date.startsWith(targetPrefix));
-    if (firstIndex !== -1) {
-      const pageIndex = Math.floor(firstIndex / ENTRIES_PER_PAGE) + 2;
-      handleTurnPage(Math.min(totalPages, pageIndex));
     } else {
-      handleTurnPage(1);
+      onSelectDateForEdit?.(targetDate);
     }
   };
 
@@ -459,23 +474,26 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   }, [yearEntries]);
 
   const thaiBuddhistYear = selectedYear + 543;
+  const monthEntriesCount = yearEntries.length;
+  const daysInSelectedMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+  const firstWeekdayOfMonth = new Date(selectedYear, selectedMonth - 1, 1).getDay();
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4">
       {/* Top Toolbar: Year Switcher & Book Status */}
-      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/90 backdrop-blur-sm p-3.5 sm:p-4 rounded-3xl border border-amber-200/80 shadow-2xs">
+      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/90 backdrop-blur-sm p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-300 flex items-center justify-center text-amber-700 shadow-2xs">
+          <div className="w-10 h-10 rounded-2xl bg-slate-500/10 border border-slate-300 flex items-center justify-center text-slate-600 shadow-2xs">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
             <h3 className="font-extrabold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-              Journal รายปี — เล่มปี พ.ศ. {thaiBuddhistYear} ({selectedYear})
+              Journal รายเดือน — {monthName} พ.ศ. {thaiBuddhistYear}
             </h3>
             <p className="text-xs text-gray-500">
               {isOpen ? `กำลังเปิดอ่านหน้า ${currentPage} / ${totalPages}` : 'สมุดปิดอยู่ • คลิกที่หน้าปกเพื่อเปิดอ่าน'}
               {isDecorating && (
-                <span className="ml-2 font-bold text-amber-800 bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded-md text-[11px]">
+                <span className="ml-2 font-bold text-slate-600 bg-slate-100/90 border border-slate-300 px-2 py-0.5 rounded-md text-[11px]">
                   🎨 โหมดตกแต่ง Scrapbook เปิดอยู่
                 </span>
               )}
@@ -483,7 +501,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
           </div>
         </div>
 
-        {/* Toolbar Action Buttons: Scrapbook, Print, Year Selector & Open/Close */}
+        {/* Toolbar Action Buttons: Scrapbook, Print, Month/Year Selector & Open/Close */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           {/* Scrapbook Decorate Toggle (Own profile only) */}
           {isOwnProfile && isOpen && (
@@ -493,8 +511,8 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 onClick={() => setIsDecorating(!isDecorating)}
                 className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5 ${
                   isDecorating
-                    ? 'bg-amber-500 text-white border-amber-600 shadow-amber-200 ring-2 ring-amber-300'
-                    : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+                    ? 'bg-slate-500 text-white border-slate-700 shadow-slate-200 ring-2 ring-slate-300'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300'
                 }`}
                 title="เปิด/ปิดโหมดแปะสติ๊กเกอร์และเทปวาชิตกแต่งสมุด"
               >
@@ -506,10 +524,10 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowPickerModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black transition cursor-pointer shadow-2xs flex items-center gap-1 animate-pulse"
+                  className="px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-black transition cursor-pointer shadow-2xs flex items-center gap-1 animate-pulse"
                   title="เลือกสติ๊กเกอร์ / เทปวาชิมาวางบนหน้ากระดาษ"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                  <Sparkles className="w-3.5 h-3.5 text-slate-200" />
                   <span>เพิ่มของตกแต่ง ➕</span>
                 </button>
               )}
@@ -521,16 +539,36 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
             type="button"
             onClick={() => window.print()}
             className="px-3 py-1.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
-            title="พิมพ์สมุดทั้งปีหรือบันทึกเป็นไฟล์ PDF สวยงาม"
+            title="พิมพ์สมุดประจำเดือนหรือบันทึกเป็นไฟล์ PDF"
           >
             <Printer className="w-3.5 h-3.5 text-stone-600" />
             <span className="hidden sm:inline">พิมพ์สมุด (PDF)</span>
           </button>
 
+          {/* Month Selector Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="month-select" className="text-xs font-bold text-gray-600 hidden sm:inline">
+              เดือน:
+            </label>
+            <select
+              id="month-select"
+              value={selectedMonth}
+              onChange={(e) => {
+                setSelectedMonth(Number(e.target.value));
+                setIsOpen(false);
+              }}
+              className="px-3 py-1.5 rounded-xl border border-pink-200 bg-white text-xs font-bold text-gray-800 shadow-2xs focus:ring-2 focus:ring-pink-300 focus:outline-none cursor-pointer"
+            >
+              {THAI_MONTHS.map((name, index) => (
+                <option key={name} value={index + 1}>{name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Year Selector Dropdown */}
           <div className="flex items-center gap-1.5">
             <label htmlFor="year-select" className="text-xs font-bold text-gray-600 hidden sm:inline">
-              เล่มปี:
+              ปี:
             </label>
             <select
               id="year-select"
@@ -539,7 +577,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 setSelectedYear(Number(e.target.value));
                 setIsOpen(false);
               }}
-              className="px-3 py-1.5 rounded-xl border border-gray-300 bg-white text-xs font-bold text-gray-800 shadow-2xs focus:ring-2 focus:ring-amber-400 focus:outline-none cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-gray-300 bg-white text-xs font-bold text-gray-800 shadow-2xs focus:ring-2 focus:ring-slate-400 focus:outline-none cursor-pointer"
             >
               {availableYears.map((y) => (
                 <option key={y} value={y}>
@@ -553,17 +591,17 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
             <button
               type="button"
               onClick={handleCloseBook}
-              className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
               title="ปิดสมุดและกลับไปหน้าปก"
             >
-              <BookMarked className="w-3.5 h-3.5 text-amber-700" />
+              <BookMarked className="w-3.5 h-3.5 text-slate-600" />
               <span>ปิดหน้าปก</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handleOpenBook}
-              className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5 animate-pulse"
+              className="px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold transition cursor-pointer shadow-2xs flex items-center gap-1.5 animate-pulse"
               title="เปิดอ่านสมุดบันทึก"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -617,63 +655,31 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                     handleOpenBook();
                   }
                 }}
-                className="group relative w-full max-w-lg min-h-[580px] sm:min-h-[640px] md:h-[680px] rounded-r-[2.5rem] rounded-l-2xl p-6 sm:p-8 bg-gradient-to-br from-[#3E2310] via-[#5C3317] to-[#2B170A] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] border-r-8 border-b-8 border-[#261408] ring-1 ring-amber-500/20 cursor-pointer transform hover:-translate-y-1 hover:shadow-[0_30px_70px_-12px_rgba(0,0,0,0.7)] transition-all duration-300 flex flex-col justify-between select-none overflow-hidden"
+                className="group relative w-full max-w-lg min-h-[580px] sm:min-h-[640px] md:h-[680px] rounded-xl p-6 sm:p-8 border border-slate-200 shadow-sm cursor-pointer transition-shadow duration-200 hover:shadow-md flex flex-col justify-between select-none overflow-hidden"
+                style={{ backgroundColor: coverColor }}
               >
-                {/* Subtle Leather Texture Overlay */}
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-20"
-                  style={{
-                    backgroundImage:
-                      'radial-gradient(circle, rgba(251, 191, 36, 0.15) 1px, transparent 1px)',
-                    backgroundSize: '16px 16px',
-                  }}
-                />
-
-                {/* Left Spine with 4 Embossed Leather Ribs & Shadow */}
-                <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-10 bg-gradient-to-r from-[#1E0F06] via-[#331B0D] to-transparent border-r border-amber-900/50 flex flex-col justify-around py-8 pointer-events-none">
-                  <div className="h-1.5 w-full bg-amber-950/90 shadow-sm border-y border-amber-700/40" />
-                  <div className="h-1.5 w-full bg-amber-950/90 shadow-sm border-y border-amber-700/40" />
-                  <div className="h-1.5 w-full bg-amber-950/90 shadow-sm border-y border-amber-700/40" />
-                  <div className="h-1.5 w-full bg-amber-950/90 shadow-sm border-y border-amber-700/40" />
-                </div>
-
-                {/* 4 Brass Metal Corners */}
-                <div className="absolute top-2 right-2 w-8 h-8 border-t-2 border-r-2 border-amber-400/80 rounded-tr-xl pointer-events-none" />
-                <div className="absolute bottom-2 right-2 w-8 h-8 border-b-2 border-r-2 border-amber-400/80 rounded-br-xl pointer-events-none" />
-                <div className="absolute top-2 left-10 w-8 h-8 border-t-2 border-l-2 border-amber-400/80 rounded-tl-sm pointer-events-none" />
-                <div className="absolute bottom-2 left-10 w-8 h-8 border-b-2 border-l-2 border-amber-400/80 rounded-bl-sm pointer-events-none" />
-
-                {/* Stitched Gold Border along perimeter */}
-                <div className="absolute inset-4 left-12 border border-dashed border-amber-400/40 rounded-r-3xl rounded-l-md pointer-events-none" />
-
-                {/* Silk Bookmark Ribbon Hanging from bottom right */}
-                <div className="absolute -bottom-2 right-12 z-20 w-8 h-16 bg-gradient-to-b from-rose-700 to-rose-600 rounded-b-md shadow-lg border-t border-rose-500 flex items-end justify-center pb-2">
-                  <div className="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[10px] border-t-rose-600 -mb-2" />
-                </div>
+                {/* Minimal cover spine */}
+                <div className="absolute inset-y-0 left-0 w-8 sm:w-10 bg-black/5 border-r border-black/5 pointer-events-none" />
 
                 {/* COVER HEADER */}
                 <div className="relative z-10 pl-6 sm:pl-8 text-center space-y-2">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[11px] font-mono tracking-widest uppercase">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>AROM LOG • ANNUAL JOURNAL</span>
+                  <div className="text-[11px] font-medium tracking-widest uppercase text-slate-600">
+                    Arom Log • Monthly Journal
                   </div>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 drop-shadow-md">
-                    สมุดบันทึกอารมณ์
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-wide text-slate-800">
+                    บันทึกใจของฉัน
                   </h1>
-                  <div className="text-xs sm:text-sm font-semibold tracking-widest text-amber-300/80 uppercase font-mono">
-                    ประจำปี พ.ศ. {thaiBuddhistYear} • {selectedYear}
+                  <div className="text-sm sm:text-base font-bold tracking-wide text-slate-700">
+                    {monthName} พ.ศ. {thaiBuddhistYear}
                   </div>
                 </div>
 
                 {/* COVER CENTER: EMBOSSED EMBLEM / GOLD MEDALLION */}
                 <div className="relative z-10 pl-6 sm:pl-8 flex flex-col items-center justify-center my-6">
-                  <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gradient-to-br from-amber-500/20 via-amber-700/30 to-amber-900/40 border-2 border-amber-400/60 shadow-[inset_0_2px_10px_rgba(251,191,36,0.3)] flex flex-col items-center justify-center p-4 group-hover:scale-105 transition-transform duration-300">
-                    {/* Outer Ring Ornaments */}
-                    <div className="absolute inset-1 rounded-full border border-dashed border-amber-300/40 pointer-events-none" />
-
-                    {/* User Avatar Inside Emblem */}
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    {/* User avatar */}
                     <div
-                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center text-3xl sm:text-4xl shadow-md border-2 border-amber-200/90 mb-1.5"
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center text-3xl sm:text-4xl border border-white/80 mb-1.5"
                       style={{ backgroundColor: userProfile.avatarBg || '#FEF3C7' }}
                     >
                       {userProfile.photoURL ? (
@@ -695,29 +701,61 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                     </div>
 
                     <div className="text-center">
-                      <div className="text-xs sm:text-sm font-black text-amber-200 truncate max-w-[120px]">
+                      <div className="text-xs sm:text-sm font-black text-slate-800 truncate max-w-[120px]">
                         {userProfile.displayName}
                       </div>
-                      <div className="text-[10px] text-amber-400/80 font-mono">
+                      <div className="text-[10px] text-slate-600 font-mono">
                         {userProfile.handle ? `@${userProfile.handle.replace(/^@/, '')}` : `@${userProfile.userId.slice(0, 6)}`}
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-amber-300/70 italic mt-3 text-center max-w-xs">
-                    "บันทึกแห่งใจ เรียนรู้และเข้าใจทุกความรู้สึกตลอด 365 วัน"
+                  <p className="text-[11px] text-slate-700 italic mt-3 text-center max-w-xs">
+                    “เก็บเรื่องราวเล็กๆ และความรู้สึกดีๆ ของเดือนนี้ไว้ด้วยกัน”
                   </p>
                 </div>
 
-                {/* COVER FOOTER: CALL TO ACTION BUTTON */}
-                <div className="relative z-10 pl-6 sm:pl-8 text-center space-y-3">
-                  <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-900/40 transition-all transform group-hover:scale-105">
-                    <BookOpen className="w-4 h-4 text-stone-950" />
-                    <span>คลิกเพื่อเปิดสมุดบันทึกเล่มนี้</span>
-                    <ChevronRight className="w-4 h-4 text-stone-950" />
+                {/* Cover color customization */}
+                <div
+                  data-no-page-turn="true"
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative z-20 pl-6 sm:pl-8 flex flex-col items-center gap-2"
+                >
+                  <span className="text-[11px] font-bold text-slate-700">เลือกสีปกสมุด</span>
+                  <div className="flex items-center justify-center gap-2">
+                    {COVER_COLOR_PRESETS.map((preset) => (
+                      <button
+                        key={preset.color}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); updateCoverColor(preset.color); }}
+                        aria-label={`เลือกสีปก${preset.name}`}
+                        aria-pressed={coverColor === preset.color}
+                        title={preset.name}
+                        className={`w-7 h-7 rounded-full border-2 shadow-sm transition-transform hover:scale-110 ${coverColor === preset.color ? 'border-slate-700 scale-110 ring-2 ring-white' : 'border-white'}`}
+                        style={{ backgroundColor: preset.color }}
+                      />
+                    ))}
+                    <label
+                      className="w-7 h-7 overflow-hidden rounded-full border-2 border-white shadow-sm cursor-pointer hover:scale-110 transition-transform bg-white"
+                      title="เลือกสีปกเอง"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="color"
+                        aria-label="เลือกสีปกเอง"
+                        value={coverColor}
+                        onChange={(e) => updateCoverColor(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-10 h-10 -m-1.5 cursor-pointer"
+                      />
+                    </label>
                   </div>
-
-                  <div className="flex items-center justify-center gap-4 text-[10px] text-amber-400/60 font-mono">
+                  <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/75 hover:bg-white text-slate-800 font-medium text-xs sm:text-sm border border-white/80 transition-colors">
+                    <BookOpen className="w-4 h-4 text-rose-500" />
+                    <span>คลิกเพื่อเปิดสมุดประจำเดือน</span>
+                    <ChevronRight className="w-4 h-4 text-rose-500" />
+                  </div>
+                  <div className="flex items-center justify-center gap-4 text-[10px] text-slate-700/80 font-mono">
                     <span>บันทึกแล้ว {stats.totalDays} วัน</span>
                     <span>•</span>
                     <span>รวม {totalPages} หน้า</span>
@@ -750,8 +788,8 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                   ease: [0.32, 0, 0.67, 0] as const,
                 },
               }}
-              style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d' }}
-              className="w-full relative rounded-[2.5rem] p-3 sm:p-5 md:p-7 bg-gradient-to-br from-[#3E2310] via-[#5C3317] to-[#2B170A] shadow-2xl border-4 border-amber-950/80 ring-1 ring-amber-700/30"
+              className="w-full relative rounded-xl p-3 sm:p-5 md:p-7 border border-slate-200 shadow-sm"
+              style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d', backgroundColor: coverColor }}
             >
               {/* Dynamic Book Ribbon Bookmarks hanging out from top edge */}
               <div className="absolute -top-3 sm:-top-3.5 right-6 sm:right-14 z-30 flex items-start gap-1.5 sm:gap-2 pointer-events-auto">
@@ -788,20 +826,10 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
               {/* Inner Paper Page Container — EXACT SAME SIZE FOR ALL PAGES */}
               <div
                 onClick={handlePageAreaClick}
-                className="relative w-full min-h-[640px] md:h-[720px] rounded-[2rem] bg-[#FCFBF7] text-gray-800 shadow-inner border border-amber-200/90 flex flex-col justify-between overflow-hidden cursor-default select-text"
+                className="relative w-full min-h-[640px] md:h-[720px] rounded-lg bg-white text-gray-800 border border-slate-200 flex flex-col justify-between overflow-hidden cursor-default select-text"
                 title={isDecorating ? "🎨 โหมดตกแต่งสมุด (ลากวาง/ขยาย/หมุนสติ๊กเกอร์ได้อิสระ • ปิดการแตะเปลี่ยนหน้า)" : "คลิกฝั่งซ้ายของกระดาษเพื่อย้อนกลับ • คลิกฝั่งขวาเพื่อไปหน้าถัดไป"}
               >
-                {/* Subtle notebook ruled background & spine crease shadow */}
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-40"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(to bottom, rgba(245, 158, 11, 0.05) 1px, transparent 1px)',
-                    backgroundSize: '100% 28px',
-                  }}
-                />
-                {/* Spine fold gradient down the center */}
-                <div className="absolute top-0 bottom-0 left-0 sm:left-4 w-4 bg-linear-to-r from-stone-400/20 via-transparent to-transparent pointer-events-none" />
+
 
                 {/* FREE-FORM SCRAPBOOK CANVAS (ลากวาง ย่อ/ขยาย หมุน ได้อิสระทั่วทั้งหน้ากระดาษ) */}
                 <FreeScrapbookCanvas
@@ -824,12 +852,12 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         handleTurnPage(currentPage - 1);
                       }
                     }}
-                    className="absolute left-1 sm:left-2.5 top-1/2 -translate-y-1/2 z-30 group/prev-tab px-1.5 py-4 sm:px-2 sm:py-5 rounded-2xl bg-amber-900/10 hover:bg-amber-800/25 active:scale-95 transition-all text-amber-950 backdrop-blur-xs border border-amber-900/15 shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer"
+                    className="absolute left-1 sm:left-2.5 top-1/2 -translate-y-1/2 z-30 group/prev-tab px-1.5 py-4 sm:px-2 sm:py-5 rounded-2xl bg-slate-700/10 hover:bg-slate-600/25 active:scale-95 transition-all text-slate-800 backdrop-blur-xs border border-slate-700/15 shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer"
                     title={currentPage <= 1 ? "คลิกฝั่งซ้ายเพื่อปิดสมุด (หน้าปก)" : "คลิกฝั่งซ้ายเพื่อย้อนกลับ (หน้าก่อนหน้า)"}
                     aria-label={currentPage <= 1 ? "ปิดสมุด" : "หน้าก่อนหน้า"}
                   >
-                    <ChevronLeft className="w-5 h-5 text-amber-900 group-hover/prev-tab:-translate-x-0.5 transition-transform" />
-                    <span className="[writing-mode:vertical-rl] text-[9px] font-bold text-amber-900/80 tracking-widest hidden md:inline select-none">
+                    <ChevronLeft className="w-5 h-5 text-slate-700 group-hover/prev-tab:-translate-x-0.5 transition-transform" />
+                    <span className="[writing-mode:vertical-rl] text-[9px] font-bold text-slate-700/80 tracking-widest hidden md:inline select-none">
                       {currentPage <= 1 ? 'ปิดปก' : 'ย้อนกลับ'}
                     </span>
                   </button>
@@ -843,12 +871,12 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                       e.stopPropagation();
                       handleTurnPage(currentPage + 1);
                     }}
-                    className="absolute right-1 sm:right-2.5 top-1/2 -translate-y-1/2 z-30 group/next-tab px-1.5 py-4 sm:px-2 sm:py-5 rounded-2xl bg-amber-900/10 hover:bg-amber-800/25 active:scale-95 transition-all text-amber-950 backdrop-blur-xs border border-amber-900/15 shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer"
+                    className="absolute right-1 sm:right-2.5 top-1/2 -translate-y-1/2 z-30 group/next-tab px-1.5 py-4 sm:px-2 sm:py-5 rounded-2xl bg-slate-700/10 hover:bg-slate-600/25 active:scale-95 transition-all text-slate-800 backdrop-blur-xs border border-slate-700/15 shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer"
                     title="คลิกฝั่งขวาเพื่อเปิดหน้าถัดไป"
                     aria-label="หน้าถัดไป"
                   >
-                    <ChevronRight className="w-5 h-5 text-amber-900 group-hover/next-tab:translate-x-0.5 transition-transform" />
-                    <span className="[writing-mode:vertical-rl] text-[9px] font-bold text-amber-900/80 tracking-widest hidden md:inline select-none">
+                    <ChevronRight className="w-5 h-5 text-slate-700 group-hover/next-tab:translate-x-0.5 transition-transform" />
+                    <span className="[writing-mode:vertical-rl] text-[9px] font-bold text-slate-700/80 tracking-widest hidden md:inline select-none">
                       ถัดไป
                     </span>
                   </button>
@@ -872,20 +900,20 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         initial={{ opacity: 0.35 }}
                         animate={{ opacity: 0 }}
                         transition={{ duration: 0.35 }}
-                        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-stone-900/10 via-amber-500/5 to-transparent rounded-2xl z-20"
+                        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-900/5 to-transparent rounded-xl z-20"
                       />
 
                       {currentPage === 1 ? (
                 /* ========================================================================= */
-                /* PAGE 1: สรุปปฏิทินทั้งปี (Whole Year Calendar Summary & Mood in Pixels)   */
+                /* PAGE 1: ปฏิทินอารมณ์ประจำเดือน */
                 /* ========================================================================= */
                 <div className="space-y-5 animate-in fade-in duration-300 flex-1 flex flex-col">
                   {/* Book Header Stamp */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b-2 border-dashed border-amber-300/80 gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-200">
-                            หน้า 1 • สรุปปฏิทินทั้งปี (Year in Pixels)
+                          <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase text-slate-600 bg-slate-100/80 px-2.5 py-0.5 rounded-full border border-slate-200">
+                            หน้า 1 • ปฏิทินอารมณ์ประจำเดือน
                           </span>
                           <button
                             type="button"
@@ -896,7 +924,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                             className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs ${
                               isCurrentPageBookmarked
                                 ? 'bg-rose-100 text-rose-900 border-rose-300'
-                                : 'bg-white hover:bg-amber-50 text-stone-600 border-amber-200'
+                                : 'bg-white hover:bg-slate-50 text-stone-600 border-slate-200'
                             }`}
                             title={isCurrentPageBookmarked ? "ยกเลิกคั่นหน้านี้" : "คั่นหน้านี้ด้วยริบบิ้น"}
                           >
@@ -913,8 +941,8 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                             )}
                           </button>
                         </div>
-                        <h2 className="text-lg sm:text-2xl font-black text-amber-950 mt-1">
-                          สมุดบันทึกอารมณ์ประจำปี พ.ศ. {thaiBuddhistYear}
+                        <h2 className="text-lg sm:text-2xl font-black text-slate-800 mt-1">
+                          Journal ประจำเดือน{monthName} พ.ศ. {thaiBuddhistYear}
                         </h2>
                         <p className="text-xs text-stone-500">
                           ของ {userProfile.displayName} ({userProfile.handle ? `@${userProfile.handle.replace(/^@/, '')}` : `@${userProfile.userId.slice(0, 6)}`})
@@ -923,21 +951,21 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
                     {/* Year Key Stats Mini Cards */}
                     <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                      <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-center">
-                        <div className="text-[10px] text-amber-800 font-bold">บันทึกแล้ว</div>
+                      <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                        <div className="text-[10px] text-slate-600 font-bold">บันทึกแล้ว</div>
                         <div className="text-sm font-black text-gray-900">
                           {stats.totalDays} <span className="text-[10px] font-normal">วัน</span>
                         </div>
                       </div>
-                      <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
-                        <div className="text-[10px] text-emerald-800 font-bold">คะแนนเฉลี่ย</div>
+                      <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                        <div className="text-[10px] text-slate-600 font-bold">คะแนนเฉลี่ย</div>
                         <div className="text-sm font-black text-gray-900">
                           {stats.averageScore} <span className="text-[10px] font-normal">/ 10</span>
                         </div>
                       </div>
                       {stats.dominantMood && (
-                        <div className="px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-center">
-                          <div className="text-[10px] text-orange-800 font-bold">อารมณ์เด่น</div>
+                        <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                          <div className="text-[10px] text-slate-600 font-bold">อารมณ์เด่น</div>
                           <div className="text-sm font-black text-gray-900 flex items-center gap-1.5 justify-center">
                             {stats.dominantMood.emojiUrl ? (
                               <img
@@ -957,99 +985,46 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                     </div>
                   </div>
 
-                  {/* 12-Month Mini Calendar Grid ("Year in Pixels") */}
-                  <div className="flex-1">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
-                      {THAI_MONTHS.map((monthName, mIdx) => {
-                        const daysInMonth = new Date(selectedYear, mIdx + 1, 0).getDate();
-                        const firstDayWeek = new Date(selectedYear, mIdx, 1).getDay(); // 0 = Sun
-                        const monthNumStr = String(mIdx + 1).padStart(2, '0');
-
-                        // Count entries in this month
-                        let monthEntryCount = 0;
-                        for (let d = 1; d <= daysInMonth; d++) {
-                          const dateStr = `${selectedYear}-${monthNumStr}-${String(d).padStart(2, '0')}`;
-                          if (entriesByDate.has(dateStr)) monthEntryCount++;
-                        }
-
+                  {/* Selected month calendar */}
+                  <div className="flex-1 flex flex-col justify-center max-w-xl w-full mx-auto">
+                    <div className="flex items-center justify-between mb-3 px-2">
+                      <h3 className="text-lg sm:text-xl font-black text-slate-800">{monthName} {thaiBuddhistYear}</h3>
+                      <span className="text-xs font-bold text-stone-500">บันทึกแล้ว {monthEntriesCount} วัน</span>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1.5 sm:gap-2 text-center">
+                      {THAI_DAYS_MINI.map((day, index) => (
+                        <div key={`${day}-${index}`} className="py-1 text-[10px] sm:text-xs font-bold text-stone-500">{day}</div>
+                      ))}
+                      {Array.from({ length: firstWeekdayOfMonth }).map((_, index) => (
+                        <div key={`empty-${index}`} className="aspect-square" />
+                      ))}
+                      {Array.from({ length: daysInSelectedMonth }, (_, index) => index + 1).map((day) => {
+                        const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        const entry = entriesByDate.get(dateStr);
+                        const preset = entry && MOOD_PRESETS.find((p) => p.type === entry.moodType);
                         return (
-                          <div
-                            key={monthName}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              jumpToMonth(mIdx);
-                            }}
+                          <button
+                            key={dateStr}
+                            type="button"
+                            onClick={(event) => { event.stopPropagation(); jumpToDatePage(dateStr); }}
                             data-no-page-turn="true"
-                            className="bg-white/80 hover:bg-white rounded-2xl p-2.5 border border-amber-200/60 shadow-2xs transition-all hover:shadow-xs hover:border-amber-400 group cursor-pointer flex flex-col justify-between"
+                            className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-0.5 transition hover:scale-105 cursor-pointer ${entry ? 'text-white shadow-sm' : 'bg-white/80 text-stone-500 hover:bg-rose-50 border border-rose-100'}`}
+                            style={entry ? { backgroundColor: preset?.color || entry.moodColor || '#F59E0B' } : undefined}
+                            title={entry ? `${day} ${monthNameShort}: ${entry.moodLabel} — ${entry.note || ''}` : `เพิ่มบันทึกวันที่ ${day} ${monthNameShort}`}
                           >
-                            {/* Month Header */}
-                            <div className="flex items-center justify-between pb-1 border-b border-gray-100 text-[11px] font-bold">
-                              <span className="text-amber-950 group-hover:text-amber-700">
-                                {monthName}
-                              </span>
-                              <span className="text-[9px] text-stone-400 font-mono">
-                                {monthEntryCount > 0 ? `${monthEntryCount} วัน` : '—'}
-                              </span>
-                            </div>
-
-                            {/* Mini 7-col Day Grid */}
-                            <div className="grid grid-cols-7 gap-0.5 pt-1.5 text-center">
-                              {/* Empty lead cells for day alignment */}
-                              {Array.from({ length: firstDayWeek }).map((_, i) => (
-                                <div key={`empty-${i}`} className="w-full aspect-square" />
-                              ))}
-
-                              {/* Days */}
-                              {Array.from({ length: daysInMonth }).map((_, dIdx) => {
-                                const day = dIdx + 1;
-                                const dateStr = `${selectedYear}-${monthNumStr}-${String(day).padStart(2, '0')}`;
-                                const entry = entriesByDate.get(dateStr);
-
-                                if (entry) {
-                                  const preset = MOOD_PRESETS.find((p) => p.type === entry.moodType);
-                                  const dotColor = preset?.color || entry.moodColor || '#F59E0B';
-
-                                  return (
-                                    <div
-                                      key={dateStr}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        jumpToDatePage(dateStr);
-                                      }}
-                                      data-no-page-turn="true"
-                                      className="w-full aspect-square rounded-full flex items-center justify-center transition-transform hover:scale-125 cursor-pointer shadow-2xs text-[8px] font-bold text-white"
-                                      style={{ backgroundColor: dotColor }}
-                                      title={`${day} ${THAI_MONTHS_SHORT[mIdx]}: ${entry.moodLabel} (${entry.moodScore}/10) - ${entry.note || ''}`}
-                                    >
-                                      <span className="leading-none text-[8px]">{day}</span>
-                                    </div>
-                                  );
-                                }
-
-                                return (
-                                  <div
-                                    key={dateStr}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                    }}
-                                    data-no-page-turn="true"
-                                    className="w-full aspect-square rounded-md flex items-center justify-center text-[8px] text-stone-300 hover:text-stone-600 hover:bg-stone-100 transition-colors"
-                                  >
-                                    {day}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
+                            <span className="text-xs sm:text-sm font-bold">{day}</span>
+                            {entry && <MoodIcon moodType={entry.moodType} customDrawing={entry.customDrawing} className="w-7 h-7" alt={entry.moodLabel} />}
+                          </button>
                         );
                       })}
                     </div>
+                    <p className="text-center text-[10px] text-stone-500 mt-3">แตะวันที่มีบันทึกเพื่อเปิดอ่าน หรือวันที่ว่างเพื่อเพิ่มบันทึก</p>
                   </div>
 
                   {/* Legend & Hint */}
-                  <div className="pt-2 border-t border-amber-200/80 flex flex-wrap items-center justify-between text-[11px] text-stone-600 gap-2">
+                  <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between text-[11px] text-stone-600 gap-2">
                     <div className="flex flex-wrap items-center gap-3">
-                      <span className="font-bold text-amber-950">คำอธิบายสี:</span>
+                      <span className="font-bold text-slate-800">คำอธิบายสี:</span>
                       {MOOD_PRESETS.slice(0, 5).map((preset) => (
                         <span key={preset.type} className="inline-flex items-center gap-1">
                           <span
@@ -1068,10 +1043,8 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                           <span>{preset.label}</span>
                         </span>
                       ))}
-                    </div>
-
-                    <span className="text-[10px] text-amber-800 font-medium italic">
-                      คลิกเดือนหรือวันที่เพื่อพลิกไปหน้าบันทึกวันนั้น
+                    </div>                      <span className="text-[10px] text-slate-600 font-medium italic">
+                      คลิกวันที่เพื่อเปิดหรือเพิ่มบันทึกของวันนั้น
                     </span>
                   </div>
                 </div>
@@ -1081,9 +1054,9 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 /* ========================================================================= */
                 <div className="space-y-4 animate-in fade-in duration-300 flex-1 flex flex-col justify-between">
                   {/* Page Header */}
-                  <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-amber-300/80">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase text-amber-800 bg-amber-100/90 px-3 py-0.5 rounded-full border border-amber-200">
+                      <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase text-slate-600 bg-slate-100/90 px-3 py-0.5 rounded-full border border-slate-200">
                         หน้า {currentPage} จาก {totalPages}
                       </span>
                       <button
@@ -1095,7 +1068,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs ${
                           isCurrentPageBookmarked
                             ? 'bg-rose-100 text-rose-900 border-rose-300'
-                            : 'bg-white hover:bg-amber-50 text-stone-600 border-amber-200'
+                            : 'bg-white hover:bg-slate-50 text-stone-600 border-slate-200'
                         }`}
                         title={isCurrentPageBookmarked ? "ยกเลิกคั่นหน้านี้" : "คั่นหน้านี้ด้วยริบบิ้น"}
                       >
@@ -1112,7 +1085,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         )}
                       </button>
                       <span className="text-xs text-stone-500 hidden sm:inline">
-                        บันทึกอารมณ์ประจำปี {thaiBuddhistYear}
+                        บันทึกอารมณ์เดือน{monthName} {thaiBuddhistYear}
                       </span>
                     </div>
 
@@ -1123,10 +1096,10 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                           e.stopPropagation();
                           handleTurnPage(1);
                         }}
-                        className="text-xs font-bold text-amber-800 hover:text-amber-950 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold text-slate-600 hover:text-slate-800 hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <Bookmark className="w-3.5 h-3.5" />
-                        <span>หน้าสรุปทั้งปี</span>
+                        <span>ปฏิทินเดือน{monthName}</span>
                       </button>
                       <span className="text-gray-300">•</span>
                       <button
@@ -1146,7 +1119,6 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                   {/* Entry Cards List for this Page (Fixed count: 3 entries per page) */}
                   <div className="space-y-3.5 flex-1">
                     {entryPages[currentPage - 2]?.map((entry) => {
-                      const preset = MOOD_PRESETS.find((p) => p.type === entry.moodType);
                       const [y, m, d] = entry.date.split('-').map(Number);
                       const monthName = THAI_MONTHS[m - 1] || '';
                       const dayOfWeekIdx = new Date(y, m - 1, d).getDay();
@@ -1157,58 +1129,38 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         <div
                           key={entry.id || entry.date}
                           data-no-page-turn="true"
-                          className="bg-white/95 rounded-2xl p-3.5 sm:p-4 border border-amber-200/80 shadow-xs hover:border-amber-300 transition-all flex flex-col sm:flex-row gap-3 sm:gap-4 items-start relative group"
+                          className="bg-white rounded-lg p-3.5 sm:p-4 border border-slate-200 transition-colors flex flex-col sm:flex-row gap-3 sm:gap-4 items-start relative group"
                         >
-                          {/* Left: Date Stamp & Mood Emoji Ribbon */}
-                          <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:gap-1.5 shrink-0 w-full sm:w-28 p-2 rounded-xl bg-amber-50/70 border border-amber-200 text-center">
-                            <div className="flex justify-center">
-                              <MoodIcon
-                                moodType={entry.moodType}
-                                customDrawing={entry.customDrawing}
-                                className="w-8 h-8 sm:w-9 sm:h-9"
-                                alt={entry.moodLabel}
-                              />
-                            </div>
-                            <div>
-                              <div className="text-xs font-extrabold text-amber-950">
-                                {d} {THAI_MONTHS_SHORT[m - 1]}
-                              </div>
-                              <div className="text-[10px] text-amber-700 font-medium">
-                                {entry.moodLabel}
-                              </div>
-                              <div className="text-[10px] font-black text-amber-900 mt-0.5">
-                                {entry.moodScore}/10
-                              </div>
-                            </div>
+                          {/* Mobile: mood emoji with date and feeling alongside. Desktop: details remain in the main column. */}
+                          <div className="flex items-center gap-3 shrink-0 sm:w-20 sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:text-center">
+                            <MoodIcon
+                              moodType={entry.moodType}
+                              customDrawing={entry.customDrawing}
+                              className="w-16 h-16 sm:w-20 sm:h-20"
+                              imgClassName="!rounded-none !border-0 !bg-transparent !shadow-none"
+                              alt={entry.moodLabel}
+                            />
+                            <span className="sm:hidden min-w-0 text-xs font-bold text-stone-700 leading-relaxed">
+                              <span className="block">ในวันที่ {dateFormatted}</span>
+                              <span className="block">คุณรู้สึก {entry.moodLabel}</span>
+                            </span>
                           </div>
 
                           {/* Center / Body: Note, Tags & Images */}
                           <div className="flex-1 min-w-0 space-y-2">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
-                                <CalendarIcon className="w-3.5 h-3.5 text-amber-600" />
-                                {dateFormatted}
+                            <div className="hidden sm:flex items-center justify-between gap-2">
+                              <span className="text-xs font-bold text-stone-700 flex flex-col sm:flex-row sm:items-center gap-y-1 sm:gap-x-1.5">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <CalendarIcon className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+                                  <span>ในวันที่ {dateFormatted}</span>
+                                </span>
+                                <span className="pl-5 sm:pl-0">คุณรู้สึก {entry.moodLabel}</span>
                               </span>
-
-                              {/* Edit link if own profile */}
-                              {isOwnProfile && onSelectDateForEdit && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSelectDateForEdit(entry.date);
-                                  }}
-                                  className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 hover:text-amber-900 hover:underline cursor-pointer"
-                                >
-                                  <Edit3 className="w-3 h-3" />
-                                  <span>แก้ไขบันทึก</span>
-                                </button>
-                              )}
                             </div>
 
                             {/* Note / Text */}
                             {entry.note ? (
-                              <p className="text-xs sm:text-[13px] text-gray-800 leading-relaxed font-sans bg-amber-50/40 p-2.5 rounded-xl border border-amber-100/80 whitespace-pre-wrap">
+                              <p className="text-xs sm:text-[13px] text-gray-800 leading-relaxed font-sans bg-slate-50/40 p-2.5 rounded-xl border border-slate-100/80 whitespace-pre-wrap">
                                 {entry.note}
                               </p>
                             ) : (
@@ -1235,16 +1187,16 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                             {(entry.customDrawing || entry.photoUrl) && (
                               <div className="flex items-center gap-2 pt-1">
                                 {entry.customDrawing && (
-                                  <div className="p-1 bg-white rounded-xl border border-amber-200 shadow-2xs">
+                                  <div className="p-1 bg-white rounded-xl border border-slate-200 shadow-2xs">
                                     <img
                                       src={entry.customDrawing}
                                       alt="ภาพวาดอารมณ์"
-                                      className="w-14 h-14 object-contain rounded-lg bg-amber-50/50"
+                                      className="w-14 h-14 object-contain rounded-lg bg-slate-50/50"
                                     />
                                   </div>
                                 )}
                                 {entry.photoUrl && (
-                                  <div className="p-1 bg-white rounded-xl border border-amber-200 shadow-2xs">
+                                  <div className="p-1 bg-white rounded-xl border border-slate-200 shadow-2xs">
                                     <img
                                       src={entry.photoUrl}
                                       alt="รูปภาพประจำวัน"
@@ -1264,9 +1216,9 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                                     e.stopPropagation();
                                     setShowPickerModal(true);
                                   }}
-                                  className="px-2.5 py-1 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                                  className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-[11px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
                                 >
-                                  <Sparkles className="w-3 h-3 text-amber-700" />
+                                  <Sparkles className="w-3 h-3 text-slate-600" />
                                   <span>แปะสติ๊กเกอร์หน้านี้ 🎨</span>
                                 </button>
                               </div>
@@ -1289,7 +1241,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
                   {/* Bottom Page Note */}
                   <div className="text-center text-[10px] text-stone-400 font-mono">
-                    - Arom Log Journal • ประจำปี {thaiBuddhistYear} -
+                    - Arom Log Journal • ประจำเดือน{monthName} {thaiBuddhistYear} -
                   </div>
                 </div>
               )}
@@ -1298,7 +1250,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
         </div>
 
         {/* BOOK BOTTOM CONTROLS & NAVIGATION BAR (Page Turner) */}
-        <div data-no-page-turn="true" className="relative z-10 px-4 py-3 bg-amber-100/70 border-t border-amber-200/90 flex items-center justify-between gap-3 text-xs font-bold text-amber-950 select-none">
+        <div data-no-page-turn="true" className="relative z-10 px-4 py-3 bg-white border-t border-slate-200 flex items-center justify-between gap-3 text-xs font-medium text-slate-700 select-none">
           {/* Previous Page Button (Closes book if on page 1) */}
           <button
             type="button"
@@ -1312,23 +1264,23 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 handleTurnPage(currentPage - 1);
               }
             }}
-            className="px-3 sm:px-4 py-2 rounded-xl bg-white hover:bg-amber-50 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed border border-amber-300/80 shadow-2xs transition flex items-center gap-1.5 cursor-pointer font-bold"
+            className="px-3 sm:px-4 py-2 rounded-lg bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed border border-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer font-medium"
           >
-            <ChevronLeft className="w-4 h-4 text-amber-700" />
+            <ChevronLeft className="w-4 h-4 text-slate-600" />
             <span>{currentPage <= 1 ? 'ปิดสมุด (หน้าปก)' : 'หน้าก่อนหน้า'}</span>
           </button>
 
           {/* Page Indicator & Click Hints */}
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-white/90 border border-amber-300 shadow-2xs font-mono text-xs">
-              {currentPage === 1 ? 'หน้าแรก (สรุปทั้งปี)' : `หน้า ${currentPage} / ${totalPages}`}
+            <span className="px-3 py-1 rounded-full bg-white/90 border border-slate-300 shadow-2xs font-mono text-xs">
+              {currentPage === 1 ? `ปฏิทินเดือน${monthName}` : `หน้า ${currentPage} / ${totalPages}`}
             </span>
             {isDecorating ? (
-              <span className="text-[10px] sm:text-xs text-amber-900 font-bold flex items-center gap-1 bg-amber-200/80 px-2.5 py-1 rounded-full border border-amber-400/60 shadow-2xs">
+              <span className="text-[10px] sm:text-xs text-slate-700 font-bold flex items-center gap-1 bg-slate-200/80 px-2.5 py-1 rounded-full border border-slate-400/60 shadow-2xs">
                 🎨 กำลังอยู่ในโหมดตกแต่งสมุด (ปิดการเปลี่ยนหน้าชั่วคราว)
               </span>
             ) : (
-              <span className="text-[10px] text-amber-900/60 hidden sm:inline font-medium">
+              <span className="text-[10px] text-slate-700/60 hidden sm:inline font-medium">
                 (👈 แตะฝั่งซ้าย: ย้อนกลับ • แตะฝั่งขวา: ถัดไป 👉)
               </span>
             )}
@@ -1343,7 +1295,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
               handleTurnPage(currentPage + 1);
             }}
             disabled={isDecorating || currentPage >= totalPages}
-            className="px-3 sm:px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-2xs transition flex items-center gap-1.5 cursor-pointer font-bold"
+            className="px-3 sm:px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors flex items-center gap-1.5 cursor-pointer font-medium"
           >
             <span>หน้าถัดไป</span>
             <ChevronRight className="w-4 h-4 text-white" />
@@ -1399,23 +1351,23 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
         {/* 1. FRONT COVER (หน้าปกสมุดพิมพ์) */}
         <div
-          className="min-h-[92vh] flex flex-col justify-between items-center text-center p-12 border-8 border-double border-amber-950 rounded-3xl bg-amber-50/20"
-          style={{ breakAfter: 'page', pageBreakAfter: 'always' }}
+          className="min-h-[92vh] flex flex-col justify-between items-center text-center p-12 border-8 border-double border-white rounded-2xl"
+          style={{ breakAfter: 'page', pageBreakAfter: 'always', backgroundColor: coverColor }}
         >
           <div className="pt-10 space-y-4">
-            <div className="text-sm font-mono tracking-widest uppercase text-amber-900 border-b border-amber-900/40 pb-2 inline-block">
-              AROM LOG • ANNUAL EMOTIONAL JOURNAL
+            <div className="text-sm font-mono tracking-widest uppercase text-slate-700 border-b border-slate-700/40 pb-2 inline-block">
+              AROM LOG • MONTHLY EMOTIONAL JOURNAL
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black text-amber-950 tracking-wide font-serif pt-4">
+            <h1 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-wide font-serif pt-4">
               สมุดบันทึกอารมณ์
             </h1>
-            <p className="text-xl sm:text-2xl font-bold text-amber-900/90 font-serif">
-              ประจำปี พ.ศ. {thaiBuddhistYear} (ค.ศ. {selectedYear})
+            <p className="text-xl sm:text-2xl font-bold text-slate-700/90 font-serif">
+              ประจำเดือน{monthName} พ.ศ. {thaiBuddhistYear}
             </p>
           </div>
 
           <div className="py-12 space-y-4 flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full border-4 border-amber-900/60 bg-amber-100 flex items-center justify-center text-5xl shadow-md overflow-hidden">
+            <div className="w-24 h-24 rounded-full border-4 border-slate-700/60 bg-slate-100 flex items-center justify-center text-5xl shadow-md overflow-hidden">
               {userProfile.photoURL ? (
                 <img
                   src={userProfile.photoURL}
@@ -1434,7 +1386,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
               )}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-amber-950">
+              <h2 className="text-2xl font-bold text-slate-800">
                 {userProfile.displayName || 'ผู้ใช้งาน'}
               </h2>
               <p className="text-sm text-stone-600 font-mono">
@@ -1444,18 +1396,18 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
           </div>
 
           <div className="w-full pb-8">
-            <div className="grid grid-cols-3 gap-4 border-t-2 border-dashed border-amber-900/30 pt-6 max-w-lg mx-auto text-center">
+            <div className="grid grid-cols-3 gap-4 border-t-2 border-dashed border-slate-700/30 pt-6 max-w-lg mx-auto text-center">
               <div>
-                <div className="text-xs text-amber-900 font-bold">บันทึกทั้งหมด</div>
-                <div className="text-xl font-black text-amber-950">{stats.totalDays} วัน</div>
+                <div className="text-xs text-slate-700 font-bold">บันทึกเดือนนี้</div>
+                <div className="text-xl font-black text-slate-800">{stats.totalDays} วัน</div>
               </div>
               <div>
-                <div className="text-xs text-amber-900 font-bold">คะแนนเฉลี่ย</div>
-                <div className="text-xl font-black text-amber-950">{stats.averageScore} / 10</div>
+                <div className="text-xs text-slate-700 font-bold">คะแนนเฉลี่ย</div>
+                <div className="text-xl font-black text-slate-800">{stats.averageScore} / 10</div>
               </div>
               <div>
-                <div className="text-xs text-amber-900 font-bold">อารมณ์เด่น</div>
-                <div className="text-xl font-black text-amber-950 flex items-center justify-center gap-2">
+                <div className="text-xs text-slate-700 font-bold">อารมณ์เด่น</div>
+                <div className="text-xl font-black text-slate-800 flex items-center justify-center gap-2">
                   {stats.dominantMood?.emojiUrl ? (
                     <img
                       src={stats.dominantMood.emojiUrl}
@@ -1475,76 +1427,67 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
           </div>
         </div>
 
-        {/* 2. WHOLE YEAR CALENDAR SUMMARY (หน้าสรุปปฏิทินทั้งปี) */}
+        {/* 2. MONTHLY CALENDAR SUMMARY */}
         <div
           className="min-h-[92vh] flex flex-col justify-between p-6"
           style={{ breakAfter: 'page', pageBreakAfter: 'always' }}
         >
           <div className="space-y-4">
-            <div className="border-b-2 border-amber-900/40 pb-3 flex items-center justify-between">
+            <div className="border-b-2 border-slate-700/40 pb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-black text-amber-950 font-serif">
-                  สรุปปฏิทินอารมณ์ทั้งปี (Year in Pixels)
+                <h2 className="text-2xl font-black text-slate-800 font-serif">
+                  ปฏิทินอารมณ์ประจำเดือน{monthName}
                 </h2>
                 <p className="text-xs text-stone-600">
-                  ประจำปี พ.ศ. {thaiBuddhistYear} ({selectedYear})
+                  ประจำเดือน{monthName} พ.ศ. {thaiBuddhistYear}
                 </p>
               </div>
-              <div className="text-right text-xs text-amber-900 font-bold">
+              <div className="text-right text-xs text-slate-700 font-bold">
                 รวม {stats.totalDays} วันบันทึก
               </div>
             </div>
 
-            {/* 12 Months Mini Grid */}
-            <div className="grid grid-cols-3 gap-3 pt-2">
-              {THAI_MONTHS.map((mName, mIdx) => {
-                const daysInM = new Date(selectedYear, mIdx + 1, 0).getDate();
-                const mNumStr = String(mIdx + 1).padStart(2, '0');
-                return (
-                  <div key={mName} className="p-2 border border-stone-300 rounded-xl bg-stone-50/50">
-                    <div className="text-[11px] font-black text-amber-950 mb-1 border-b border-stone-200 pb-0.5">
-                      {mName}
+            {/* Selected month's calendar */}
+            <div className="max-w-2xl mx-auto w-full pt-2">
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {THAI_DAYS_MINI.map((day, index) => (
+                  <span key={`${day}-${index}`} className="py-2 text-xs font-bold text-stone-500">{day}</span>
+                ))}
+                {Array.from({ length: firstWeekdayOfMonth }).map((_, index) => (
+                  <span key={`empty-${index}`} />
+                ))}
+                {Array.from({ length: daysInSelectedMonth }, (_, index) => index + 1).map((day) => {
+                  const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const entry = entriesByDate.get(dateStr);
+                  const preset = entry && MOOD_PRESETS.find((p) => p.type === entry.moodType);
+                  return (
+                    <div
+                      key={day}
+                      className={`h-10 rounded-lg text-xs flex items-center justify-center font-bold ${entry ? 'text-white' : 'bg-white text-stone-400 border border-stone-100'}`}
+                      style={entry ? { backgroundColor: preset?.color || entry.moodColor || '#F59E0B' } : undefined}
+                      title={entry ? `${dateStr}: ${entry.moodLabel}` : undefined}
+                    >
+                      {day}
                     </div>
-                    <div className="grid grid-cols-7 gap-0.5 text-center">
-                      {['อ','จ','อ','พ','พ','ศ','ส'].map((d, i) => (
-                        <span key={i} className="text-[8px] font-bold text-stone-400">{d}</span>
-                      ))}
-                      {Array.from({ length: daysInM }, (_, i) => i + 1).map((day) => {
-                        const dateStr = `${selectedYear}-${mNumStr}-${String(day).padStart(2, '0')}`;
-                        const entry = entriesByDate.get(dateStr);
-                        const preset = entry ? MOOD_PRESETS.find((p) => p.type === entry.moodType) : null;
-                        return (
-                          <div
-                            key={day}
-                            className={`w-4 h-4 rounded text-[8px] flex items-center justify-center font-bold ${
-                              preset ? preset.badgeBg || 'bg-amber-200' : 'bg-white text-stone-300 border border-stone-100'
-                            }`}
-                            title={entry ? `${dateStr}: ${entry.moodLabel}` : undefined}
-                          >
-                            {day}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           <div className="text-center text-[10px] text-stone-400 font-mono pt-4 border-t border-stone-200">
-            Arom Log Journal • หน้าสรุปภาพรวมประจำปี พ.ศ. {thaiBuddhistYear}
+            Arom Log Journal • ปฏิทินเดือน{monthName} พ.ศ. {thaiBuddhistYear}
           </div>
         </div>
 
         {/* 3. ALL DAILY ENTRIES (บันทึกรายวันทั้งหมด เรียงจากเก่าไปใหม่) */}
         <div className="space-y-4 pt-2">
           <div className="text-center pb-2 border-b border-stone-300">
-            <h3 className="text-xl font-black text-amber-950 font-serif">
+            <h3 className="text-xl font-black text-slate-800 font-serif">
               บันทึกเรื่องราวและความรู้สึกรายวัน
             </h3>
             <p className="text-xs text-stone-500">
-              เรียงจากวันแรกของปีสู่วันล่าสุด
+              บันทึกประจำเดือน{monthName} เรียงจากวันแรกสู่วันล่าสุด
             </p>
           </div>
 
@@ -1563,16 +1506,16 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                   style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
                   className="p-4 border border-stone-300 rounded-2xl bg-white shadow-2xs flex gap-4 items-start"
                 >
-                  <div className="w-20 shrink-0 text-center p-2 rounded-xl bg-amber-50 border border-amber-200 flex flex-col items-center">
+                  <div className="w-20 shrink-0 text-center p-2 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center">
                     <MoodIcon
                       moodType={entry.moodType}
                       customDrawing={entry.customDrawing}
                       className="w-8 h-8"
                       alt={entry.moodLabel}
                     />
-                    <div className="text-xs font-black text-amber-950 mt-1">{d} {THAI_MONTHS_SHORT[m - 1]}</div>
-                    <div className="text-[10px] text-amber-800">{entry.moodLabel}</div>
-                    <div className="text-[9px] font-bold text-amber-900 mt-0.5">{entry.moodScore}/10</div>
+                    <div className="text-xs font-black text-slate-800 mt-1">{d} {THAI_MONTHS_SHORT[m - 1]}</div>
+                    <div className="text-[10px] text-slate-600">{entry.moodLabel}</div>
+                    <div className="text-[9px] font-bold text-slate-700 mt-0.5">{entry.moodScore}/10</div>
                   </div>
 
                   <div className="flex-1 min-w-0 space-y-1.5">

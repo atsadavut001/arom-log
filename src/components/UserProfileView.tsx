@@ -779,7 +779,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           <span>โพสต์ ({posts.length})</span>
         </button>
 
-        {/* Tab 2: Yearly Journal (เฉพาะเจ้าของโปรไฟล์เท่านั้นที่เห็น) */}
+        {/* Tab 2: Monthly Journal (เฉพาะเจ้าของโปรไฟล์เท่านั้นที่เห็น) */}
         {isOwnProfile && (
           <button
             type="button"
@@ -791,7 +791,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Journal รายปี</span>
+            <span>Journal รายเดือน</span>
           </button>
         )}
       </div>
@@ -948,7 +948,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         </div>
       )}
 
-      {/* TAB B: YEARLY JOURNAL BOOK (Journal รายปี — เฉพาะเจ้าของโปรไฟล์เท่านั้น) */}
+      {/* TAB B: MONTHLY JOURNAL BOOK (Journal รายเดือน — เฉพาะเจ้าของโปรไฟล์เท่านั้น) */}
       {isOwnProfile && activeTab === 'journal' && (
         <YearlyJournalBook
           entries={entries}

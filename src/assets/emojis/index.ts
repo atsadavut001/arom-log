@@ -4,6 +4,7 @@ import emoComfortable from './emo-comfortable.png';
 import emoExcited from './emo-excited.png';
 import emoFun from './emo-fun.png';
 import emoHappy from './emo-happy.png';
+import emoIndifferent from './emo-indifferent.png';
 import emoLove from './emo-love.png';
 import emoSad from './emo-sad.png';
 import emoShy from './emo-shy.png';
@@ -11,6 +12,7 @@ import emoSleepy from './emo-sleepy.png';
 import emoSpeechless from './emo-speechless.png';
 import emoSurprised from './emo-surprised.png';
 import emoTired from './emo-tired.png';
+import emoUnwell from './emo-unwell.png';
 import emoWorry from './emo-worry.png';
 
 export {
@@ -20,6 +22,7 @@ export {
   emoExcited,
   emoFun,
   emoHappy,
+  emoIndifferent,
   emoLove,
   emoSad,
   emoShy,
@@ -27,6 +30,7 @@ export {
   emoSpeechless,
   emoSurprised,
   emoTired,
+  emoUnwell,
   emoWorry,
 };
 
@@ -37,6 +41,7 @@ export const MOOD_EMOJI_IMAGES: Record<string, string> = {
   excited: emoExcited,
   calm: emoComfortable,
   comfortable: emoComfortable,
+  indifferent: emoIndifferent,
   shy: emoShy,
   surprised: emoSurprised,
   speechless: emoSpeechless,
@@ -46,5 +51,6 @@ export const MOOD_EMOJI_IMAGES: Record<string, string> = {
   anxious: emoWorry,
   worry: emoWorry,
   sad: emoSad,
+  unwell: emoUnwell,
   angry: emoAngry,
 };
