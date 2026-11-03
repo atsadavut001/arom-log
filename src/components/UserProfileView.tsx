@@ -305,9 +305,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
     try {
       if (isFollowing) {
-        await setDoc(followDocRef, { deleted: true });
-        // Actually delete doc
-        const { deleteDoc } = await import('firebase/firestore');
+        // ยกเลิกติดตาม = ลบเอกสาร follow ทิ้ง (Firestore rules อนุญาตเฉพาะ create/delete ไม่มี update)
         await deleteDoc(followDocRef);
         setIsFollowing(false);
         setFollowersCount((prev) => Math.max(0, prev - 1));
@@ -804,32 +802,6 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               </button>
             </div>
 
-            {/* Action Button: Follow/Unfollow (เฉพาะโปรไฟล์คนอื่น) */}
-            {!isOwnProfile && (
-              <div className="pt-1 flex justify-center">
-                <button
-                  type="button"
-                  onClick={handleToggleFollow}
-                  className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
-                    isFollowing
-                      ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                      : 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
-                  }`}
-                >
-                  {isFollowing ? (
-                    <>
-                      <UserCheck className="w-4 h-4 text-emerald-600" />
-                      <span>กำลังติดตาม</span>
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-4 h-4" />
-                      <span>ติดตาม</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
           </div>
 
           {/* รูปโปรไฟล์ (Privacy-Friendly Emoji Avatar Circle) — อยู่ถัดลงมาจากชื่อและ @ID */}
@@ -853,6 +825,33 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               </button>
             )}
           </div>
+
+          {/* Action Button: Follow/Unfollow (เฉพาะโปรไฟล์คนอื่น) — อยู่ล่างรูปโปรไฟล์ */}
+          {!isOwnProfile && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={handleToggleFollow}
+                className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
+                  isFollowing
+                    ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    : 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
+                }`}
+              >
+                {isFollowing ? (
+                  <>
+                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                    <span>กำลังติดตาม</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    <span>ติดตาม</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Quick Stats (ใต้รูปโปรไฟล์): กำลังติดตาม (คนที่เราติดตาม) / ผู้ติดตาม (คนที่ติดตามเรา) */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
