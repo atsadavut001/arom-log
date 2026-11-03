@@ -856,12 +856,6 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
           {/* Quick Stats (ใต้รูปโปรไฟล์): กำลังติดตาม (คนที่เราติดตาม) / ผู้ติดตาม (คนที่ติดตามเรา) */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            {userProfile.streak !== undefined && userProfile.streak > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-teal-50 border border-teal-200 rounded-full text-teal-800 text-xs font-bold shadow-2xs">
-                <Flame className="w-3.5 h-3.5 text-teal-500 fill-teal-500" />
-                <span>บันทึกต่อเนื่อง {userProfile.streak} วัน</span>
-              </div>
-            )}
 
             <div className="flex items-center gap-7 sm:gap-12">
               <div className="flex flex-col items-center leading-tight">
