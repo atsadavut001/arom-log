@@ -36,7 +36,7 @@ export const WASHI_TAPE_PRESETS: WashiTapePreset[] = [
   {
     id: 'kraft',
     name: 'คราฟท์วินเทจ',
-    className: 'bg-amber-200/90 border-t border-b border-amber-300/80 shadow-xs text-amber-900',
+    className: 'bg-green-200/90 border-t border-b border-green-300/80 shadow-xs text-green-900',
     patternStyle: {
       backgroundImage:
         'repeating-linear-gradient(45deg, rgba(180,83,9,0.08) 0, rgba(180,83,9,0.08) 3px, transparent 3px, transparent 6px)',
@@ -126,7 +126,7 @@ export const STICKER_PRESETS = [
 ];
 
 export const STAMP_PRESETS = [
-  { id: 'good-day', text: 'GOOD DAY ✨', bg: 'bg-amber-100', textCol: 'text-amber-900', border: 'border-amber-300' },
+  { id: 'good-day', text: 'GOOD DAY ✨', bg: 'bg-green-100', textCol: 'text-green-900', border: 'border-green-300' },
   { id: 'great-job', text: 'คนเก่ง 🌟', bg: 'bg-rose-100', textCol: 'text-rose-900', border: 'border-rose-300' },
   { id: 'warm-hug', text: 'กอดนะ 💖', bg: 'bg-pink-100', textCol: 'text-pink-900', border: 'border-pink-300' },
   { id: 'take-rest', text: 'พักผ่อนนะ ☕', bg: 'bg-teal-100', textCol: 'text-teal-900', border: 'border-teal-300' },
@@ -156,17 +156,17 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-amber-50 rounded-3xl border-2 border-amber-300/80 shadow-2xl p-4 sm:p-5 space-y-4 max-h-[85vh] overflow-y-auto"
+        className="w-full max-w-md bg-green-50 rounded-3xl border-2 border-green-300/80 shadow-2xl p-4 sm:p-5 space-y-4 max-h-[85vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-amber-200 pb-2.5">
+        <div className="flex items-center justify-between border-b border-green-200 pb-2.5">
           <div className="flex items-center gap-2">
             <span className="text-xl">🎨</span>
             <div>
-              <h4 className="font-extrabold text-sm sm:text-base text-amber-950">
+              <h4 className="font-extrabold text-sm sm:text-base text-green-950">
                 เลือกของตกแต่งหน้ากระดาษ
               </h4>
-              <p className="text-[11px] text-amber-800/80">
+              <p className="text-[11px] text-green-800/80">
                 แตะเพื่อวางบนหน้ากระดาษ สามารถลากย้าย หมุน และย่อ/ขยายได้อย่างอิสระ
               </p>
             </div>
@@ -174,7 +174,7 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-stone-400 hover:text-stone-700 rounded-full hover:bg-amber-200/50 transition cursor-pointer"
+            className="p-1 text-stone-400 hover:text-stone-700 rounded-full hover:bg-green-200/50 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -183,11 +183,11 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
         {/* 1. Washi Tapes Section */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-black text-amber-900 flex items-center gap-1.5">
+            <label className="text-xs font-black text-green-900 flex items-center gap-1.5">
               <span>🏷️</span>
               <span>เทปวาชิตกแต่ง (Washi Tape)</span>
             </label>
-            <span className="text-[10px] text-amber-800/70">พิมพ์ข้อความเองได้</span>
+            <span className="text-[10px] text-green-800/70">พิมพ์ข้อความเองได้</span>
           </div>
 
           <div className="relative">
@@ -197,7 +197,7 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
               onChange={(e) => setCustomTapeText(e.target.value)}
               placeholder="พิมพ์ข้อความที่ต้องการใส่บนเทป (หรือเว้นว่างเพื่อใช้ชื่อลาย)..."
               maxLength={40}
-              className="w-full px-3 py-1.5 text-xs font-bold rounded-xl bg-white border border-amber-300 text-amber-950 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs pr-8"
+              className="w-full px-3 py-1.5 text-xs font-bold rounded-xl bg-white border border-green-300 text-green-950 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-2xs pr-8"
             />
             {customTapeText && (
               <button
@@ -220,11 +220,11 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
                   onSelectTape(tape.id, customTapeText.trim() || undefined);
                   onClose();
                 }}
-                className="group relative h-9 rounded-md px-2 flex items-center justify-center text-xs font-bold transition hover:scale-102 active:scale-98 cursor-pointer overflow-hidden border border-amber-400/60 shadow-2xs"
+                className="group relative h-9 rounded-md px-2 flex items-center justify-center text-xs font-bold transition hover:scale-102 active:scale-98 cursor-pointer overflow-hidden border border-green-400/60 shadow-2xs"
                 style={tape.patternStyle}
               >
                 <div className={`absolute inset-0 opacity-85 ${tape.className}`} />
-                <span className="relative z-10 text-[11px] font-black text-amber-950/80 drop-shadow-xs truncate max-w-full px-1">
+                <span className="relative z-10 text-[11px] font-black text-green-950/80 drop-shadow-xs truncate max-w-full px-1">
                   {customTapeText.trim() || tape.name}
                 </span>
               </button>
@@ -233,8 +233,8 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
         </div>
 
         {/* 2. Stamps Section */}
-        <div className="space-y-2 pt-1 border-t border-amber-200">
-          <label className="text-xs font-black text-amber-900 flex items-center gap-1.5">
+        <div className="space-y-2 pt-1 border-t border-green-200">
+          <label className="text-xs font-black text-green-900 flex items-center gap-1.5">
             <span>💌</span>
             <span>แสตมป์คำให้กำลังใจ (Inspirational Stamps)</span>
           </label>
@@ -256,8 +256,8 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
         </div>
 
         {/* 3. Cute Stickers Section */}
-        <div className="space-y-2 pt-1 border-t border-amber-200">
-          <label className="text-xs font-black text-amber-900 flex items-center gap-1.5">
+        <div className="space-y-2 pt-1 border-t border-green-200">
+          <label className="text-xs font-black text-green-900 flex items-center gap-1.5">
             <span>✨</span>
             <span>สติ๊กเกอร์น่ารัก (Cute Stickers)</span>
           </label>
@@ -270,7 +270,7 @@ export const ScrapbookPickerModal: React.FC<ScrapbookPickerModalProps> = ({
                   onSelectSticker(st.emoji);
                   onClose();
                 }}
-                className="w-11 h-11 rounded-2xl bg-white hover:bg-amber-100 border border-amber-200 flex items-center justify-center text-2xl shadow-2xs hover:scale-110 active:scale-95 transition cursor-pointer"
+                className="w-11 h-11 rounded-2xl bg-white hover:bg-green-100 border border-green-200 flex items-center justify-center text-2xl shadow-2xs hover:scale-110 active:scale-95 transition cursor-pointer"
                 title={st.label}
               >
                 {st.emoji}
@@ -346,8 +346,8 @@ export const FreeScrapbookCanvas: React.FC<FreeScrapbookCanvasProps> = ({
     >
       {/* Floating Mode Helper Banner when Decorating */}
       {isDecorating && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 bg-amber-900/90 text-white backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-lg border border-amber-500/50 flex items-center gap-2 text-xs font-bold animate-in fade-in select-none">
-          <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" style={{ animationDuration: '3s' }} />
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 bg-green-900/90 text-white backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-lg border border-green-500/50 flex items-center gap-2 text-xs font-bold animate-in fade-in select-none">
+          <Sparkles className="w-3.5 h-3.5 text-green-300 animate-spin" style={{ animationDuration: '3s' }} />
           <span>โหมดตกแต่ง: ลากวาง • ย่อ/ขยาย • หมุนสติ๊กเกอร์ได้อิสระ</span>
           {onOpenPicker && (
             <button
@@ -356,7 +356,7 @@ export const FreeScrapbookCanvas: React.FC<FreeScrapbookCanvasProps> = ({
                 e.stopPropagation();
                 onOpenPicker();
               }}
-              className="ml-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer"
+              className="ml-1 px-2 py-0.5 rounded-md bg-green-500 hover:bg-green-400 text-stone-950 font-black text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>เพิ่มของตกแต่ง</span>
@@ -643,9 +643,9 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
           : 'pointer-events-none'
       } ${
         isSelected
-          ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-amber-50 rounded-xl shadow-xl'
+          ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-green-50 rounded-xl shadow-xl'
           : isDecorating
-          ? 'hover:ring-1 hover:ring-amber-400/80 rounded-xl'
+          ? 'hover:ring-1 hover:ring-green-400/80 rounded-xl'
           : ''
       }`}
     >
@@ -659,7 +659,7 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
               e.stopPropagation();
               setIsEditingText(true);
             }}
-            className={`px-3.5 py-1.5 rounded-xs text-xs font-black border border-amber-300/80 shadow-xs whitespace-nowrap select-none transition flex items-center justify-center min-w-[70px] ${
+            className={`px-3.5 py-1.5 rounded-xs text-xs font-black border border-green-300/80 shadow-xs whitespace-nowrap select-none transition flex items-center justify-center min-w-[70px] ${
               washiPreset.className
             }`}
             style={washiPreset.patternStyle}
@@ -691,11 +691,11 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
                   }}
                   placeholder="พิมพ์ข้อความบนเทป..."
                   maxLength={50}
-                  className="px-2 py-0.5 text-xs font-bold bg-white/95 text-stone-900 rounded border border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs min-w-[120px] max-w-[240px]"
+                  className="px-2 py-0.5 text-xs font-bold bg-white/95 text-stone-900 rounded border border-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-xs min-w-[120px] max-w-[240px]"
                 />
                 <button
                   type="submit"
-                  className="p-1 rounded bg-amber-600 hover:bg-amber-700 text-white shadow-xs cursor-pointer"
+                  className="p-1 rounded bg-green-600 hover:bg-green-700 text-white shadow-xs cursor-pointer"
                   title="บันทึกข้อความ (Enter)"
                 >
                   <Check className="w-3.5 h-3.5" />
@@ -766,11 +766,11 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
                   }}
                   placeholder="ข้อความแสตมป์..."
                   maxLength={40}
-                  className="px-2 py-0.5 text-xs font-bold bg-white/95 text-stone-900 rounded border border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs min-w-[100px] max-w-[200px]"
+                  className="px-2 py-0.5 text-xs font-bold bg-white/95 text-stone-900 rounded border border-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-xs min-w-[100px] max-w-[200px]"
                 />
                 <button
                   type="submit"
-                  className="p-1 rounded bg-amber-600 hover:bg-amber-700 text-white shadow-xs cursor-pointer"
+                  className="p-1 rounded bg-green-600 hover:bg-green-700 text-white shadow-xs cursor-pointer"
                   title="บันทึกข้อความ"
                 >
                   <Check className="w-3.5 h-3.5" />
@@ -828,7 +828,7 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
             </button>
 
             {/* Scale Label */}
-            <span className="font-mono text-[10px] text-amber-300 px-0.5">
+            <span className="font-mono text-[10px] text-green-300 px-0.5">
               {Math.round(item.scale * 100)}%
             </span>
 
@@ -855,7 +855,7 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
             </button>
 
             {/* Rotation Degree Display */}
-            <span className="font-mono text-[10px] text-amber-300 px-0.5" title="องศาการหมุนปัจจุบัน">
+            <span className="font-mono text-[10px] text-green-300 px-0.5" title="องศาการหมุนปัจจุบัน">
               {item.rotation}°
             </span>
 
@@ -877,7 +877,7 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsEditingText(true)}
-                  className="p-1 px-1.5 hover:bg-stone-800 rounded-lg text-amber-300 hover:text-amber-200 transition cursor-pointer flex items-center gap-1"
+                  className="p-1 px-1.5 hover:bg-stone-800 rounded-lg text-green-300 hover:text-green-200 transition cursor-pointer flex items-center gap-1"
                   title="แก้ไขข้อความ (หรือดับเบิลคลิกที่ตัวเทป)"
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -896,7 +896,7 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
                         content: washiText,
                       });
                     }}
-                    className="p-1 px-1.5 hover:bg-stone-800 rounded-lg text-amber-300 hover:text-amber-200 transition cursor-pointer flex items-center gap-1"
+                    className="p-1 px-1.5 hover:bg-stone-800 rounded-lg text-green-300 hover:text-green-200 transition cursor-pointer flex items-center gap-1"
                     title={`เปลี่ยนลายเทป (ปัจจุบัน: ${washiPreset.name})`}
                   >
                     <Palette className="w-3.5 h-3.5" />
@@ -922,12 +922,12 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
           {/* Interactive Freeform Rotation Handle at bottom-left (จับหมุนอิสระ 360 องศา) */}
           <div
             onPointerDown={handleRotateHandleDown}
-            className="scrapbook-handle-btn absolute -bottom-2.5 -left-2.5 w-6 h-6 rounded-full bg-amber-600 hover:bg-amber-500 active:bg-amber-700 border-2 border-white shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing z-50 pointer-events-auto touch-none transition-transform hover:scale-115 active:scale-95"
+            className="scrapbook-handle-btn absolute -bottom-2.5 -left-2.5 w-6 h-6 rounded-full bg-green-600 hover:bg-green-500 active:bg-green-700 border-2 border-white shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing z-50 pointer-events-auto touch-none transition-transform hover:scale-115 active:scale-95"
             title="กดค้างแล้วลากเพื่อหมุนอิสระ 360° (กด Shift ค้างเพื่อล็อกมุมทีละ 15°)"
           >
             <RotateCw className="w-3 h-3 text-white pointer-events-none" />
             {isRotating && (
-              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-stone-900/95 text-amber-300 text-[9px] font-mono whitespace-nowrap shadow-md pointer-events-none border border-stone-700">
+              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-stone-900/95 text-green-300 text-[9px] font-mono whitespace-nowrap shadow-md pointer-events-none border border-stone-700">
                 {item.rotation}°
               </span>
             )}
@@ -936,12 +936,12 @@ const DraggableScrapbookItem: React.FC<DraggableScrapbookItemProps> = ({
           {/* Interactive Corner Resize Drag Handle at bottom-right (ลากย่อ/ขยายขนาด) */}
           <div
             onPointerDown={handleResizeHandleDown}
-            className="scrapbook-handle-btn absolute -bottom-2.5 -right-2.5 w-6 h-6 rounded-full bg-amber-500 hover:bg-amber-400 active:bg-amber-600 border-2 border-white shadow-md flex items-center justify-center cursor-nwse-resize z-50 pointer-events-auto touch-none transition-transform hover:scale-115 active:scale-95"
+            className="scrapbook-handle-btn absolute -bottom-2.5 -right-2.5 w-6 h-6 rounded-full bg-green-500 hover:bg-green-400 active:bg-green-600 border-2 border-white shadow-md flex items-center justify-center cursor-nwse-resize z-50 pointer-events-auto touch-none transition-transform hover:scale-115 active:scale-95"
             title="กดค้างแล้วลากมุมนี้เพื่อย่อ/ขยายขนาดได้อย่างอิสระ"
           >
             <Move className="w-3 h-3 text-stone-900 pointer-events-none" />
             {isResizing && (
-              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-stone-900/95 text-amber-300 text-[9px] font-mono whitespace-nowrap shadow-md pointer-events-none border border-stone-700">
+              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-stone-900/95 text-green-300 text-[9px] font-mono whitespace-nowrap shadow-md pointer-events-none border border-stone-700">
                 {Math.round(item.scale * 100)}%
               </span>
             )}

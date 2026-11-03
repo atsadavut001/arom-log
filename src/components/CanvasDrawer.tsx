@@ -193,22 +193,22 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
   };
 
   return (
-    <div className="bg-amber-50/70 border border-amber-200/80 rounded-3xl p-5 shadow-sm space-y-4">
+    <div className="bg-green-50/70 border border-green-200/80 rounded-3xl p-5 shadow-sm space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-amber-600" />
+          <Sparkles className="w-5 h-5 text-green-600" />
           <h4 className="font-semibold text-gray-800 text-sm md:text-base">
             วาดหน้าตาอารมณ์ของคุณวันนี้ (Custom Canvas)
           </h4>
         </div>
-        <span className="text-xs text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full font-medium">
+        <span className="text-xs text-green-700 bg-green-100/80 px-2.5 py-0.5 rounded-full font-medium">
           อิสระไม่มีถูกผิด
         </span>
       </div>
 
       {/* Canvas Frame */}
       <div className="flex justify-center">
-        <div className="relative rounded-2xl p-2 bg-white shadow-inner border-2 border-dashed border-amber-300">
+        <div className="relative rounded-2xl p-2 bg-white shadow-inner border-2 border-dashed border-green-300">
           <canvas
             ref={canvasRef}
             onMouseDown={startDrawing}
@@ -238,7 +238,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
               style={{ backgroundColor: color }}
               className={`w-7 h-7 rounded-full transition-transform ${
                 !isEraser && currentColor === color
-                  ? 'ring-4 ring-amber-300 scale-110 shadow'
+                  ? 'ring-4 ring-green-300 scale-110 shadow'
                   : 'hover:scale-105 opacity-90'
               }`}
               title={`สี ${color}`}
@@ -255,7 +255,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
               onClick={() => setIsEraser(false)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition ${
                 !isEraser
-                  ? 'bg-amber-500 text-white shadow-xs'
+                  ? 'bg-green-500 text-white shadow-xs'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -267,7 +267,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
               onClick={() => setIsEraser(true)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition ${
                 isEraser
-                  ? 'bg-amber-500 text-white shadow-xs'
+                  ? 'bg-green-500 text-white shadow-xs'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -285,7 +285,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
                 onClick={() => setBrushWidth(size)}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition ${
                   brushWidth === size
-                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                    ? 'bg-green-100 text-green-900 border border-green-300'
                     : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
@@ -321,7 +321,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
 
         {/* Optional Mood Score Rating bar (0 - 10) */}
         {score !== undefined && onScoreChange && (
-          <div className="space-y-2 pt-3 border-t border-amber-200/80">
+          <div className="space-y-2 pt-3 border-t border-green-200/80">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-800">
@@ -369,7 +369,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
         )}
 
         {/* Action Buttons: Back + Done */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-amber-200/70">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-green-200/70">
           {onBack ? (
             <button
               type="button"
@@ -411,7 +411,7 @@ export const CanvasDrawer: React.FC<CanvasDrawerProps> = ({
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-6 py-2.5 text-xs md:text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 active:scale-95 rounded-xl shadow-xs flex items-center gap-1.5 transition cursor-pointer"
+              className="px-6 py-2.5 text-xs md:text-sm font-bold text-white bg-green-500 hover:bg-green-600 active:scale-95 rounded-xl shadow-xs flex items-center gap-1.5 transition cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span>{confirmButtonText || 'เสร็จสิ้น'}</span>

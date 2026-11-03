@@ -35,17 +35,17 @@ export const SupportModal: React.FC<SupportModalProps> = ({ onClose }) => {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-gradient-to-b from-[#FFFDF9] to-[#FFF9EE] rounded-3xl border-2 border-amber-200/90 shadow-2xl p-6 sm:p-7 relative overflow-hidden text-center space-y-5"
+        className="w-full max-w-md bg-gradient-to-b from-[#FFFDF9] to-[#FFF9EE] rounded-3xl border-2 border-green-200/90 shadow-2xl p-6 sm:p-7 relative overflow-hidden text-center space-y-5"
       >
         {/* Decorative background glows */}
-        <div className="absolute -top-16 -right-16 w-36 h-36 bg-amber-300/20 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-orange-300/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -top-16 -right-16 w-36 h-36 bg-green-300/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-teal-300/20 rounded-full blur-2xl pointer-events-none" />
 
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-stone-400 hover:text-stone-700 hover:bg-amber-100/70 rounded-full transition cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 text-stone-400 hover:text-stone-700 hover:bg-green-100/70 rounded-full transition cursor-pointer"
           title="ปิดหน้าต่าง"
           aria-label="ปิด"
         >
@@ -53,14 +53,14 @@ export const SupportModal: React.FC<SupportModalProps> = ({ onClose }) => {
         </button>
 
         {/* Header Icon Badge */}
-        <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-white flex items-center justify-center shadow-lg shadow-amber-500/25 rotate-3 hover:rotate-0 transition-transform">
+        <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-green-500 to-green-400 text-white flex items-center justify-center shadow-lg shadow-green-500/25 rotate-3 hover:rotate-0 transition-transform">
           <Coffee className="w-8 h-8 drop-shadow-xs" />
         </div>
 
         {/* Title & Introduction */}
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/80 text-amber-900 border border-amber-200/60 text-[11px] font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100/80 text-green-900 border border-green-200/60 text-[11px] font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-green-600" />
             <span>Support Arom Log</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
@@ -72,10 +72,10 @@ export const SupportModal: React.FC<SupportModalProps> = ({ onClose }) => {
         </div>
 
         {/* Support Card: Buy Me a Coffee */}
-        <div className="bg-white/90 rounded-2xl p-4 border border-amber-200/70 shadow-xs space-y-3">
+        <div className="bg-white/90 rounded-2xl p-4 border border-green-200/70 shadow-xs space-y-3">
           <div className="flex items-center justify-between text-left">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 text-lg shadow-2xs font-bold">
+              <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center text-green-800 text-lg shadow-2xs font-bold">
                 ☕
               </div>
               <div>
@@ -116,7 +116,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ onClose }) => {
             href={SUPPORT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-98 text-stone-950 font-black text-sm sm:text-base transition shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 to-green-500 hover:from-green-600 hover:to-green-600 active:scale-98 text-stone-950 font-black text-sm sm:text-base transition shadow-md shadow-green-500/20 flex items-center justify-center gap-2 cursor-pointer"
           >
             <Coffee className="w-4 h-4 fill-current text-stone-950" />
             <span>ไปที่หน้า Buy Me a Coffee</span>
@@ -125,7 +125,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ onClose }) => {
         </div>
 
         {/* Warm Thank You Note */}
-        <div className="pt-1 border-t border-amber-200/50 text-[11px] text-stone-500 flex items-center justify-center gap-1">
+        <div className="pt-1 border-t border-green-200/50 text-[11px] text-stone-500 flex items-center justify-center gap-1">
           <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 inline shrink-0" />
           <span>ทุกการสนับสนุนและการใช้งานของคุณมีความหมายกับเรามากครับ ขอบคุณครับ!</span>
         </div>

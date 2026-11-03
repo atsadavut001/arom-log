@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
+/* ธีมหลักของเว็บ: เขียวพาสเทล #f4fbf8 (พื้น) + เขียวมรกตเข้ม #006a60 (สีหลัก) */
+@theme {
+  --color-green-50: #f4fbf8;
+  --color-green-100: #e6f6f1;
+  --color-green-200: #c5ebe2;
+  --color-green-300: #96d8cb;
+  --color-green-400: #55b8a8;
+  --color-green-500: #006a60;
+  --color-green-600: #005c53;
+  --color-green-700: #004f47;
+  --color-green-800: #02403a;
+  --color-green-900: #04352f;
+  --color-green-950: #02211d;
+
+  --color-teal-50: #f0faf7;
+  --color-teal-100: #dff3ee;
+  --color-teal-200: #bfe7df;
+  --color-teal-300: #8fd3c7;
+  --color-teal-400: #4fb5a6;
+  --color-teal-500: #00877a;
+  --color-teal-600: #006a60;
+  --color-teal-700: #025b52;
+  --color-teal-800: #054a43;
+  --color-teal-900: #073c36;
+  --color-teal-950: #032822;
+}
+
 body {
   font-family: 'Prompt', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;

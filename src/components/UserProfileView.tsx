@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import {
   collection,
@@ -139,6 +140,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [postsLoading, setPostsLoading] = useState<boolean>(true);
   const [showComposer, setShowComposer] = useState<boolean>(false);
+
+  // หน้ารายการโพสต์ (/profile/posts หรือ /profile/:userId/posts) — เปิดจากการกดรูปในกริด
+  const navigate = useNavigate();
+  const location = useLocation();
+  const profilePath = location.pathname.replace(/\/+$/, '').replace(/\/posts$/, '');
+  const isPostsPage = location.pathname.replace(/\/+$/, '').endsWith('/posts');
   const [composerDrawing, setComposerDrawing] = useState<string>('');
   const [composerText, setComposerText] = useState<string>('');
   const [editingDrawing, setEditingDrawing] = useState<boolean>(true);
@@ -606,6 +613,144 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     ? `@${userProfile.handle.replace(/^@/, '')}`
     : `@${userProfile.userId.substring(0, 8)}`;
 
+
+
+  // หน้ารายการโพสต์ (เปิดจากการกดรูปในกริด) — แสดงเป็นฟีดสไตล์เดียวกับหน้า Community
+  if (isPostsPage) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-5 animate-in fade-in pb-12">
+        {/* Back bar */}
+        <div className="print:hidden flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(profilePath)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-600 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl transition cursor-pointer shadow-2xs"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>กลับไปโปรไฟล์</span>
+          </button>
+          <span className="text-xs font-bold text-gray-500">{posts.length} โพสต์</span>
+        </div>
+
+        {/* Header: เจ้าของโพสต์ */}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center text-xl shadow-xs border border-white ring-1 ring-green-200 shrink-0"
+            style={{ backgroundColor: displayBg }}
+          >
+            <AvatarContent photoUrl={displayPhotoURL} emoji={displayEmoji} />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-black text-gray-900 truncate">
+              โพสต์ของ {userProfile.displayName}
+            </h2>
+            <span className="text-[11px] text-green-900/70 font-mono">{displayHandle}</span>
+          </div>
+        </div>
+
+        {postsLoading ? (
+          <div className="py-16 flex flex-col items-center justify-center text-gray-400 gap-2">
+            <Loader2 className="w-7 h-7 animate-spin text-green-500" />
+            <span className="text-xs">กำลังโหลดโพสต์...</span>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-12 space-y-3">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-green-100 flex items-center justify-center text-2xl">
+              ✍️
+            </div>
+            <h4 className="text-base font-bold text-gray-800">ยังไม่มีโพสต์</h4>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* รายการโพสต์เรียงต่อกัน มีเส้นคั่น — เหมือนฟีด Community */}
+            {posts.map((post) => {
+              const isLikedByMe = (post.likes || []).includes(currentUser.uid);
+              const likesCount = post.likesCount || (post.likes || []).length || 0;
+
+              return (
+                <article
+                  key={post.id}
+                  className="space-y-3 flex flex-col pb-4 border-b border-green-100 last:border-b-0 last:pb-0"
+                >
+                  {/* Post author */}
+                  <div className="flex items-center gap-3 w-full text-left">
+                    <div
+                      className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-xl shadow-xs border border-white ring-1 ring-green-200 shrink-0"
+                      style={{ backgroundColor: displayBg }}
+                    >
+                      <AvatarContent photoUrl={displayPhotoURL} emoji={displayEmoji} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm truncate">
+                          {userProfile.displayName}
+                        </h4>
+                        <span className="text-[11px] text-green-900/70 font-mono font-medium truncate">
+                          {displayHandle}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-gray-400 block">
+                        {formatTimestampThai(post.createdAt)}
+                      </span>
+                    </div>
+                    {isOwnProfile && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePost(post)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer shrink-0"
+                        title="ลบโพสต์นี้"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Drawn emoji image */}
+                  {post.drawing && (
+                    <div className="rounded-2xl overflow-hidden aspect-square w-full">
+                      <img
+                        src={post.drawing}
+                        alt={post.text || 'post emoji'}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+
+                  {/* Post text */}
+                  {post.text && (
+                    <p className="text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                      {post.text}
+                    </p>
+                  )}
+
+                  {/* Likes */}
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePostLike(post)}
+                    className={`mt-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer active:scale-95 self-start border ${
+                      isLikedByMe
+                        ? 'bg-rose-50 text-rose-600 border-rose-200'
+                        : 'bg-gray-50 text-gray-600 hover:bg-rose-50/60 hover:text-rose-600 border-gray-200'
+                    }`}
+                    title="กดหัวใจให้กำลังใจ"
+                  >
+                    <Heart
+                      className={`w-3.5 h-3.5 ${
+                        isLikedByMe ? 'fill-rose-500 text-rose-500' : 'text-gray-400'
+                      }`}
+                    />
+                    <span>{likesCount} ใจ</span>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-5 animate-in fade-in pb-12">
       {/* Top Navigation Back bar if viewing another user */}
@@ -622,17 +767,75 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         </div>
       )}
 
-      {/* 1. PROFILE HEADER CARD */}
-      <div className="print:hidden bg-white rounded-3xl p-5 sm:p-7 border border-amber-200/70 shadow-sm relative overflow-hidden">
-        {/* Soft background gradient glow */}
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-60 h-60 bg-amber-100/40 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-orange-100/30 rounded-full blur-3xl pointer-events-none" />
+      {/* 1. PROFILE HEADER (ไม่มีกรอบการ์ดและไม่มีสีพื้นหลัง) */}
+      <div className="print:hidden p-0 sm:px-1">
+        <div className="flex flex-col items-center gap-4">
+          {/* TOP BLOCK: ชื่อ • @ID • กำลังติดตาม / ผู้ติดตาม (อยู่เหนือรูปโปรไฟล์) */}
+          <div className="w-full text-center space-y-1.5">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                {userProfile.displayName || 'ผู้ใช้งานไม่ระบุชื่อ'}
+              </h2>
+              {userProfile.isPrivate === true && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] font-bold rounded-full">
+                  <Lock className="w-2.5 h-2.5 fill-white text-white" />
+                  ส่วนตัว
+                </span>
+              )}
+            </div>
 
-        <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
-          {/* Privacy-Friendly Emoji Avatar Circle */}
+            {/* @ID Handle badge with copy feature */}
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="text-xs sm:text-sm font-bold text-green-900/80 font-mono bg-green-50 px-2.5 py-0.5 rounded-lg border border-green-200/60 inline-flex items-center gap-1">
+                <AtSign className="w-3 h-3 text-green-600" />
+                {displayHandle.replace(/^@/, '')}
+              </span>
+              <button
+                type="button"
+                onClick={copyHandleToClipboard}
+                className="p-1 text-gray-400 hover:text-green-700 hover:bg-green-100/50 rounded-md transition cursor-pointer"
+                title="คัดลอก @ID ไว้ส่งให้เพื่อนค้นหา"
+              >
+                {copiedHandle ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </div>
+
+            {/* Action Button: Follow/Unfollow (เฉพาะโปรไฟล์คนอื่น) */}
+            {!isOwnProfile && (
+              <div className="pt-1 flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleToggleFollow}
+                  className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
+                    isFollowing
+                      ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                      : 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
+                  }`}
+                >
+                  {isFollowing ? (
+                    <>
+                      <UserCheck className="w-4 h-4 text-emerald-600" />
+                      <span>กำลังติดตาม</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>ติดตาม</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* รูปโปรไฟล์ (Privacy-Friendly Emoji Avatar Circle) — อยู่ถัดลงมาจากชื่อและ @ID */}
           <div className="relative shrink-0">
             <div
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden flex items-center justify-center text-4xl sm:text-5xl shadow-md border-4 border-white ring-2 ring-amber-200/80 transition-transform hover:scale-105"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden flex items-center justify-center text-4xl sm:text-5xl shadow-md border-4 border-white ring-2 ring-green-200/80 transition-transform hover:scale-105"
               style={{ backgroundColor: displayBg }}
             >
               <AvatarContent photoUrl={displayPhotoURL} emoji={displayEmoji} />
@@ -643,7 +846,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="absolute -bottom-1 -right-1 p-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-md border-2 border-white transition cursor-pointer"
+                className="absolute -bottom-1 -right-1 p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-md border-2 border-white transition cursor-pointer"
                 title="เปลี่ยนรูป Emoji หรือแก้ไขโปรไฟล์"
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -651,115 +854,39 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             )}
           </div>
 
-          {/* User Details & Meta */}
-          <div className="flex-1 text-center sm:text-left space-y-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center justify-center sm:justify-start gap-2">
-                  <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-                    {userProfile.displayName || 'ผู้ใช้งานไม่ระบุชื่อ'}
-                  </h2>
-                  {isOwnProfile && (
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-bold rounded-full border border-amber-200">
-                      คุณ
-                    </span>
-                  )}
-                  {userProfile.isPrivate === true && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] font-bold rounded-full">
-                      <Lock className="w-2.5 h-2.5 fill-white text-white" />
-                      ส่วนตัว
-                    </span>
-                  )}
-                </div>
+          {/* Quick Stats (ใต้รูปโปรไฟล์): กำลังติดตาม (คนที่เราติดตาม) / ผู้ติดตาม (คนที่ติดตามเรา) */}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            {userProfile.streak !== undefined && userProfile.streak > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-teal-50 border border-teal-200 rounded-full text-teal-800 text-xs font-bold shadow-2xs">
+                <Flame className="w-3.5 h-3.5 text-teal-500 fill-teal-500" />
+                <span>บันทึกต่อเนื่อง {userProfile.streak} วัน</span>
+              </div>
+            )}
 
-                {/* @ID Handle badge with copy feature */}
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1">
-                  <span className="text-xs sm:text-sm font-bold text-amber-900/80 font-mono bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200/60 inline-flex items-center gap-1">
-                    <AtSign className="w-3 h-3 text-amber-600" />
-                    {displayHandle.replace(/^@/, '')}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={copyHandleToClipboard}
-                    className="p-1 text-gray-400 hover:text-amber-700 hover:bg-amber-100/50 rounded-md transition cursor-pointer"
-                    title="คัดลอก @ID ไว้ส่งให้เพื่อนค้นหา"
-                  >
-                    {copiedHandle ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
+            <div className="flex items-center gap-7 sm:gap-12">
+              <div className="flex flex-col items-center leading-tight">
+                <span className="text-base sm:text-lg font-black text-gray-900">{posts.length}</span>
+                <span className="text-[11px] sm:text-xs font-bold text-gray-500">โพสต์</span>
               </div>
 
-              {/* Action Button: Edit Profile (Own) or Follow/Unfollow (Other) */}
-              <div className="shrink-0">
-                {isOwnProfile ? (
-                  <button
-                    type="button"
-                    onClick={handleOpenEdit}
-                    className="px-4 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs w-full sm:w-auto"
-                  >
-                    <Edit3 className="w-4 h-4 text-amber-700" />
-                    <span>แก้ไขโปรไฟล์</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleToggleFollow}
-                    className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs w-full sm:w-auto ${
-                      isFollowing
-                        ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                        : 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-200'
-                    }`}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserCheck className="w-4 h-4 text-emerald-600" />
-                        <span>กำลังติดตาม</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4" />
-                        <span>ติดตาม</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Bio / Status text */}
-            {!isLegacyDefaultBio(userProfile.bio) && userProfile.bio && userProfile.bio.trim() ? (
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-xl">
-                {userProfile.bio}
-              </p>
-            ) : null}
-
-            {/* Quick Stats: Streak, Posts, Following */}
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-4 pt-2">
-              {userProfile.streak !== undefined && userProfile.streak > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 border border-orange-200 rounded-full text-orange-800 text-xs font-bold shadow-2xs">
-                  <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
-                  <span>บันทึกต่อเนื่อง {userProfile.streak} วัน</span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-200">
-                <FileText className="w-3.5 h-3.5 text-gray-500" />
-                <span>
-                  <strong>{posts.length}</strong> โพสต์
-                </span>
+              <div className="flex flex-col items-center leading-tight">
+                <span className="text-base sm:text-lg font-black text-gray-900">{followingCount}</span>
+                <span className="text-[11px] sm:text-xs font-bold text-gray-500">กำลังติดตาม</span>
               </div>
 
-              {followingCount > 0 && (
-                <div className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full border border-gray-200">
-                  <span>กำลังติดตาม <strong>{followingCount}</strong> คน</span>
-                </div>
-              )}
+              <div className="flex flex-col items-center leading-tight">
+                <span className="text-base sm:text-lg font-black text-gray-900">{followersCount}</span>
+                <span className="text-[11px] sm:text-xs font-bold text-gray-500">ผู้ติดตาม</span>
+              </div>
             </div>
           </div>
+
+          {/* Bio / Status text */}
+          {!isLegacyDefaultBio(userProfile.bio) && userProfile.bio && userProfile.bio.trim() ? (
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-xl text-center">
+              {userProfile.bio}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -769,30 +896,41 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('posts')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold transition cursor-pointer ${
             activeTab === 'posts'
-              ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              ? 'bg-green-500 border-green-600 text-white shadow-md shadow-green-200'
+              : 'border-green-200 text-green-800 hover:bg-green-50'
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>โพสต์ ({posts.length})</span>
+          <span>โพสต์</span>
         </button>
 
         {/* Tab 2: Monthly Journal (เฉพาะเจ้าของโปรไฟล์เท่านั้นที่เห็น) */}
+        {/* + Action Button: Edit Profile (Own) — อยู่ต่อจากปุ่ม Journal รายเดือน */}
         {isOwnProfile && (
-          <button
-            type="button"
-            onClick={() => setActiveTab('journal')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer ${
-              activeTab === 'journal'
-                ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Journal รายเดือน</span>
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setActiveTab('journal')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold transition cursor-pointer ${
+                activeTab === 'journal'
+                  ? 'bg-green-500 border-green-600 text-white shadow-md shadow-green-200'
+                  : 'border-green-200 text-green-800 hover:bg-green-50'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Journal</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenEdit}
+              className="ml-0.5 flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-green-50 hover:bg-green-100 text-green-900 border border-green-200 text-xs sm:text-sm font-bold transition cursor-pointer shadow-2xs"
+              title="แก้ไขโปรไฟล์ รูป Emoji ชื่อ และ bio"
+            >
+              <span>แก้ไขโปรไฟล์</span>
+            </button>
+          </>
         )}
       </div>
 
@@ -803,7 +941,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         <div className="space-y-4">
           {/* Composer launcher: สร้างโพส (own profile only) */}
           {isOwnProfile && (
-            <div className="bg-white rounded-3xl border border-amber-200/70 shadow-sm p-4 flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-xl shadow-xs border border-white shrink-0"
                 style={{ backgroundColor: displayBg }}
@@ -813,14 +951,14 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               <button
                 type="button"
                 onClick={openComposer}
-                className="flex-1 text-left px-4 py-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900/70 text-xs sm:text-sm font-semibold border border-amber-200 transition cursor-pointer"
+                className="flex-1 text-left px-4 py-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-green-900/70 text-xs sm:text-sm font-semibold border border-green-200 transition cursor-pointer"
               >
                 สร้างโพสใหม่ — วาด emoji แล้วเติมข้อความ...
               </button>
               <button
                 type="button"
                 onClick={openComposer}
-                className="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md shadow-amber-200 transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                className="px-4 py-2.5 rounded-2xl bg-green-500 hover:bg-green-600 text-white text-xs font-bold shadow-md shadow-green-200 transition flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">สร้างโพส</span>
@@ -830,12 +968,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
           {postsLoading ? (
             <div className="py-16 flex flex-col items-center justify-center text-gray-400 gap-2">
-              <Loader2 className="w-7 h-7 animate-spin text-amber-500" />
+              <Loader2 className="w-7 h-7 animate-spin text-green-500" />
               <span className="text-xs">กำลังโหลดโพสต์...</span>
             </div>
           ) : posts.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-3xl border border-gray-200/80 p-6 space-y-3">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-100 flex items-center justify-center text-2xl">
+            <div className="text-center py-12 space-y-3">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-green-100 flex items-center justify-center text-2xl">
                 ✍️
               </div>
               <h4 className="text-base font-bold text-gray-800">ยังไม่มีโพสต์โซเชียล</h4>
@@ -848,7 +986,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 <button
                   type="button"
                   onClick={openComposer}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md shadow-amber-200 transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-green-500 hover:bg-green-600 text-white text-xs font-bold shadow-md shadow-green-200 transition cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   สร้างโพสเป็นโพสต์แรก
@@ -856,92 +994,40 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {/* Web: 3 คอลัมน์ (แท็บเล็ต 2 / มือถือ 1) • รูปโพสต์เป็น 1:1 */}
+            <div className="grid grid-cols-3 gap-1 sm:gap-2">
+              {/* IG style: กริด 3 คอลัมน์ แสดงเฉพาะรูปภาพ — กดที่รูปเพื่อเปิดโพสต์แบบเต็ม */}
               {posts.map((post) => {
-                const isLikedByMe = (post.likes || []).includes(currentUser.uid);
                 const likesCount = post.likesCount || (post.likes || []).length || 0;
 
                 return (
-                  <div
+                  <button
                     key={post.id}
-                    className="bg-white rounded-3xl p-4 border border-gray-100 shadow-2xs hover:shadow-sm transition space-y-3 flex flex-col"
+                    type="button"
+                    onClick={() => navigate(`${profilePath}/posts`)}
+                    className="group relative aspect-square overflow-hidden rounded-lg sm:rounded-xl bg-white cursor-pointer transition focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1"
+                    title={post.text || 'ดูรายการโพสต์ทั้งหมด'}
                   >
-                    {/* Post Card Header */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-xl shadow-xs border border-white shrink-0"
-                          style={{ backgroundColor: displayBg }}
-                        >
-                          <AvatarContent photoUrl={displayPhotoURL} emoji={displayEmoji} />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs sm:text-sm font-black text-gray-900 truncate">
-                              {userProfile.displayName}
-                            </span>
-                            <span className="text-[11px] text-gray-400 font-mono truncate hidden sm:inline">
-                              {displayHandle}
-                            </span>
-                          </div>
-                          <span className="text-[11px] text-gray-400 block">
-                            {formatTimestampThai(post.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {isOwnProfile && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePost(post)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer"
-                          title="ลบโพสต์นี้"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Drawn emoji image (จาก Canvas) — สี่เหลี่ยมจัตุรัส 1:1 */}
-                    {post.drawing && (
-                      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-amber-50/40 aspect-square w-full">
-                        <img
-                          src={post.drawing}
-                          alt="post emoji"
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
+                    {post.drawing ? (
+                      <img
+                        src={post.drawing}
+                        alt={post.text || 'post emoji'}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="absolute inset-0 flex items-center justify-center p-2 text-center">
+                        <span className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug line-clamp-4">
+                          {post.text}
+                        </span>
+                      </span>
                     )}
 
-                    {/* Post text */}
-                    {post.text && (
-                      <p className="text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                        {post.text}
-                      </p>
-                    )}
-
-                    {/* Footer: heart like button */}
-                    <div className="mt-auto pt-2 border-t border-gray-100 flex items-center justify-between">
-                      <button
-                        type="button"
-                        onClick={() => handleTogglePostLike(post)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer active:scale-95 ${
-                          isLikedByMe
-                            ? 'bg-rose-50 text-rose-600 border border-rose-200'
-                            : 'bg-gray-50 text-gray-600 hover:bg-rose-50/60 hover:text-rose-600 border border-gray-200'
-                        }`}
-                        title="กดหัวใจให้กำลังใจ"
-                      >
-                        <Heart
-                          className={`w-4 h-4 ${
-                            isLikedByMe ? 'fill-rose-500 text-rose-500' : 'text-gray-400'
-                          }`}
-                        />
-                        <span>{likesCount} กำลังใจ</span>
-                      </button>
-                    </div>
-                  </div>
+                    {/* Hover overlay: จำนวนกำลังใจ */}
+                    <span className="absolute inset-0 flex items-center justify-center gap-1 bg-black/25 text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition">
+                      <Heart className="w-4 h-4 fill-white text-white" />
+                      {likesCount}
+                    </span>
+                  </button>
                 );
               })}
             </div>
@@ -969,12 +1055,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-amber-200 my-auto p-5 sm:p-7 space-y-5 max-h-[92vh] overflow-y-auto"
+            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-green-200 my-auto p-5 sm:p-7 space-y-5 max-h-[92vh] overflow-y-auto"
           >
             {/* Composer Header */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-lg">
+                <div className="w-9 h-9 rounded-2xl bg-green-100 text-green-800 flex items-center justify-center font-bold text-lg">
                   ✍️
                 </div>
                 <div>
@@ -1017,7 +1103,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
             {editingDrawing ? (
               <div className="space-y-2">
                 <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <Sparkles className="w-4 h-4 text-green-600" />
                   วาด emoji ประจำโพส
                 </span>
                 <CanvasDrawer
@@ -1035,17 +1121,17 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 {/* Step 2: Preview drawn emoji */}
                 <div className="space-y-2">
                   <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
+                    <Sparkles className="w-4 h-4 text-green-600" />
                     emoji ของโพสนี้
                   </span>
-                  <div className="flex flex-col items-center gap-2 p-3 bg-amber-50/60 border border-amber-200/70 rounded-2xl">
-                    <div className="rounded-2xl overflow-hidden border border-amber-200 bg-white">
+                  <div className="flex flex-col items-center gap-2 p-3 bg-green-50/60 border border-green-200/70 rounded-2xl">
+                    <div className="rounded-2xl overflow-hidden border border-green-200 bg-white">
                       <img src={composerDrawing} alt="emoji ที่วาด" className="max-h-48 object-contain" />
                     </div>
                     <button
                       type="button"
                       onClick={() => setEditingDrawing(true)}
-                      className="text-[11px] font-bold text-amber-700 hover:text-amber-800 hover:underline flex items-center gap-1"
+                      className="text-[11px] font-bold text-green-700 hover:text-green-800 hover:underline flex items-center gap-1"
                     >
                       <Edit3 className="w-3 h-3" />
                       แก้ไขรูปที่วาด
@@ -1062,7 +1148,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     value={composerText}
                     onChange={(e) => setComposerText(e.target.value)}
                     placeholder="เขียนข้อความส่งพลังใจ เช่น วันนี้มีความสุขเพราะ..."
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500/50 bg-white resize-none"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white resize-none"
                   />
                   <p className="text-[11px] text-gray-400 text-right">{composerText.length}/500</p>
                 </div>
@@ -1091,7 +1177,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     type="button"
                     onClick={handlePublishPost}
                     disabled={isPosting}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-bold shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
                   >
                     {isPosting ? (
                       <>
@@ -1122,12 +1208,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-amber-200 my-auto p-5 sm:p-7 space-y-5 max-h-[92vh] overflow-y-auto"
+            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-green-200 my-auto p-5 sm:p-7 space-y-5 max-h-[92vh] overflow-y-auto"
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-lg">
+                <div className="w-9 h-9 rounded-2xl bg-green-100 text-green-800 flex items-center justify-center font-bold text-lg">
                   ✏️
                 </div>
                 <div>
@@ -1159,10 +1245,10 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
             <form onSubmit={handleSaveProfile} className="space-y-5">
               {/* Live Preview Avatar */}
-              <div className="flex flex-col items-center justify-center p-4 bg-amber-50/60 border border-amber-200/70 rounded-2xl space-y-2">
-                <span className="text-xs font-bold text-amber-900">ตัวอย่างรูปโปรไฟล์ Emoji</span>
+              <div className="flex flex-col items-center justify-center p-4 bg-green-50/60 border border-green-200/70 rounded-2xl space-y-2">
+                <span className="text-xs font-bold text-green-900">ตัวอย่างรูปโปรไฟล์ Emoji</span>
                 <div
-                  className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-4xl shadow-md border-4 border-white ring-2 ring-amber-300 transition-transform"
+                  className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-4xl shadow-md border-4 border-white ring-2 ring-green-300 transition-transform"
                   style={{ backgroundColor: editAvatarBg }}
                 >
                   <AvatarContent photoUrl={editPhotoURL} emoji={editAvatarEmoji} />
@@ -1175,7 +1261,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               {/* 0. Uploaded profile photo (รูปอัปโหลดจะแสดงแทน emoji ถ้ามี) */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                  <ImagePlus className="w-4 h-4 text-amber-600" />
+                  <ImagePlus className="w-4 h-4 text-green-600" />
                   <span>อัปโหลดรูปโปรไฟล์ (ถ้าไม่อัปโหลดจะใช้ emoji)</span>
                 </label>
                 <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-200">
@@ -1191,7 +1277,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     )}
                   </div>
                   <div className="flex-1 flex flex-wrap items-center gap-2 min-w-0">
-                    <label className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shadow-xs">
+                    <label className="px-3 py-1.5 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shadow-xs">
                       <ImagePlus className="w-3.5 h-3.5" />
                       <span>เลือกรูปจากอุปกรณ์</span>
                       <input
@@ -1222,7 +1308,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                    <Smile className="w-4 h-4 text-amber-600" />
+                    <Smile className="w-4 h-4 text-green-600" />
                     <span>เลือกรูป Emoji ประจำตัว</span>
                   </label>
                   {/* Category switcher pills */}
@@ -1232,11 +1318,11 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       onClick={() => setEmojiTab('3d')}
                       className={`px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer ${
                         emojiTab === '3d'
-                          ? 'bg-amber-500 text-white shadow-2xs'
+                          ? 'bg-green-500 text-white shadow-2xs'
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
-                      <Sparkles className="w-3 h-3 text-amber-200" />
+                      <Sparkles className="w-3 h-3 text-green-200" />
                       <span>3D ใหม่ ({NEW_3D_EMOJI_OPTIONS.length})</span>
                     </button>
                     <button
@@ -1244,7 +1330,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       onClick={() => setEmojiTab('classic')}
                       className={`px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer ${
                         emojiTab === 'classic'
-                          ? 'bg-amber-500 text-white shadow-2xs'
+                          ? 'bg-green-500 text-white shadow-2xs'
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
@@ -1255,7 +1341,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
                 {emojiTab === '3d' ? (
                   <div className="space-y-1.5">
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 bg-gradient-to-b from-amber-50/50 to-orange-50/30 p-3 rounded-2xl border border-amber-200/70 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 bg-gradient-to-b from-green-50/50 to-teal-50/30 p-3 rounded-2xl border border-green-200/70 max-h-48 overflow-y-auto">
                       {NEW_3D_EMOJI_OPTIONS.map((item) => {
                         const isSelected =
                           editAvatarEmoji === item.id ||
@@ -1269,8 +1355,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                             title={item.label}
                             className={`group relative aspect-square rounded-2xl p-1.5 flex flex-col items-center justify-center transition cursor-pointer border ${
                               isSelected
-                                ? 'bg-amber-200/90 border-amber-400 shadow-sm ring-2 ring-amber-500 scale-105'
-                                : 'bg-white border-amber-100 hover:bg-white hover:border-amber-300 hover:scale-105 shadow-2xs'
+                                ? 'bg-green-200/90 border-green-400 shadow-sm ring-2 ring-green-500 scale-105'
+                                : 'bg-white border-green-100 hover:bg-white hover:border-green-300 hover:scale-105 shadow-2xs'
                             }`}
                           >
                             <img
@@ -1279,7 +1365,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                               className="w-8 h-8 sm:w-9 sm:h-9 object-contain select-none filter drop-shadow-xs transition-transform group-hover:scale-110"
                               draggable={false}
                             />
-                            <span className="text-[9px] text-gray-500 group-hover:text-amber-900 font-medium truncate w-full text-center mt-0.5 leading-tight">
+                            <span className="text-[9px] text-gray-500 group-hover:text-green-900 font-medium truncate w-full text-center mt-0.5 leading-tight">
                               {item.label.split('/')[0].trim()}
                             </span>
                           </button>
@@ -1294,7 +1380,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                           i.type === editAvatarEmoji
                       );
                       return selected3d ? (
-                        <p className="text-[11px] text-amber-800 font-medium text-center">
+                        <p className="text-[11px] text-green-800 font-medium text-center">
                           ✨ อิโมจิที่เลือก: <span className="font-bold">{selected3d.label}</span>
                         </p>
                       ) : null;
@@ -1311,7 +1397,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                           onClick={() => setEditAvatarEmoji(emoji)}
                           className={`aspect-square rounded-xl text-xl flex items-center justify-center transition cursor-pointer ${
                             isSelected
-                              ? 'bg-amber-300 shadow-xs ring-2 ring-amber-500 scale-110'
+                              ? 'bg-green-300 shadow-xs ring-2 ring-green-500 scale-110'
                               : 'hover:bg-white hover:scale-105'
                           }`}
                         >
@@ -1337,7 +1423,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                         type="button"
                         onClick={() => setEditAvatarBg(bg.color)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border ${
-                          isSelected ? 'ring-2 ring-amber-500 shadow-xs' : 'opacity-80 hover:opacity-100'
+                          isSelected ? 'ring-2 ring-green-500 shadow-xs' : 'opacity-80 hover:opacity-100'
                         }`}
                         style={{
                           backgroundColor: bg.color,
@@ -1364,14 +1450,14 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   value={editDisplayName}
                   onChange={(e) => setEditDisplayName(e.target.value)}
                   placeholder="เช่น มะนาวหวาน, Sky Walker"
-                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500/50 bg-white"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white"
                 />
               </div>
 
               {/* 4. @ID Handle for searching and adding friends */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
-                  <AtSign className="w-3.5 h-3.5 text-amber-600" />
+                  <AtSign className="w-3.5 h-3.5 text-green-600" />
                   <span>@ID สำหรับค้นหาเพื่อเพิ่มเพื่อน <span className="text-red-500">*</span></span>
                 </label>
                 <div className="relative flex items-center">
@@ -1389,7 +1475,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       setEditHandle(sanitized);
                     }}
                     placeholder="my_mindful_id"
-                    className="w-full pl-8 pr-3.5 py-2.5 text-xs sm:text-sm font-mono rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500/50 bg-white"
+                    className="w-full pl-8 pr-3.5 py-2.5 text-xs sm:text-sm font-mono rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white"
                   />
                 </div>
                 <p className="text-[11px] text-gray-500">
@@ -1408,7 +1494,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
                   placeholder="เช่น กำลังฝึกมองหาความสุขเล็กๆ ในแต่ละวัน..."
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500/50 bg-white resize-none"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white resize-none"
                 />
               </div>
 
@@ -1452,7 +1538,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 {/* Toggle Switch */}
                 <span
                   className={`relative inline-flex shrink-0 w-11 h-6 rounded-full transition-colors ${
-                    editIsPrivate ? 'bg-amber-500' : 'bg-gray-300'
+                    editIsPrivate ? 'bg-green-500' : 'bg-gray-300'
                   }`}
                 >
                   <span
@@ -1475,7 +1561,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 <button
                   type="submit"
                   disabled={isSavingProfile}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-bold shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   {isSavingProfile ? (
                     <>

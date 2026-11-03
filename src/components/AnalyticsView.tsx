@@ -200,9 +200,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           {/* Top Key Metrics Cards (2 cols on mobile, 4 on desktop) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {/* 1. Dominant Mood */}
-            <div className="p-3 sm:p-4 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col justify-between">
-              <span className="text-[10px] sm:text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600" />
+            <div className="p-3 sm:p-4 rounded-2xl bg-green-50/70 border border-green-200 flex flex-col justify-between">
+              <span className="text-[10px] sm:text-xs font-bold text-green-800 uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600" />
                 อารมณ์เด่น
               </span>
               <div className="my-2 sm:my-3 flex items-center gap-2 sm:gap-3">
@@ -219,7 +219,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   <div className="font-extrabold text-gray-900 text-xs sm:text-base line-clamp-1">
                     {dominantPreset?.label || 'ไม่มีข้อมูล'}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-amber-700 font-semibold">
+                  <div className="text-[10px] sm:text-xs text-green-700 font-semibold">
                     {dominantMoodCount} วัน ({dominantPercentage}%)
                   </div>
                 </div>
@@ -243,27 +243,27 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             </div>
 
             {/* 3. Streak */}
-            <div className="p-3 sm:p-4 rounded-2xl bg-orange-50/70 border border-orange-200 flex flex-col justify-between">
-              <span className="text-[10px] sm:text-xs font-bold text-orange-800 uppercase tracking-wider flex items-center gap-1">
-                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600" />
+            <div className="p-3 sm:p-4 rounded-2xl bg-teal-50/70 border border-teal-200 flex flex-col justify-between">
+              <span className="text-[10px] sm:text-xs font-bold text-teal-800 uppercase tracking-wider flex items-center gap-1">
+                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal-600" />
                 ต่อเนื่อง (Streak)
               </span>
               <div className="my-2 sm:my-3 flex items-baseline gap-1 sm:gap-1.5">
                 <span className="text-2xl sm:text-3xl font-black text-gray-900">{streak}</span>
-                <span className="text-[10px] sm:text-xs font-bold text-orange-700">วันติดกัน</span>
+                <span className="text-[10px] sm:text-xs font-bold text-teal-700">วันติดกัน</span>
               </div>
               <span className="text-[10px] sm:text-[11px] text-gray-500">สังเกตใจสม่ำเสมอ</span>
             </div>
 
             {/* 4. Total recorded */}
-            <div className="p-3 sm:p-4 rounded-2xl bg-sky-50/70 border border-sky-200 flex flex-col justify-between">
-              <span className="text-[10px] sm:text-xs font-bold text-sky-800 uppercase tracking-wider flex items-center gap-1">
-                <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-600" />
+            <div className="p-3 sm:p-4 rounded-2xl bg-green-50/70 border border-green-200 flex flex-col justify-between">
+              <span className="text-[10px] sm:text-xs font-bold text-green-800 uppercase tracking-wider flex items-center gap-1">
+                <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600" />
                 บันทึกในเดือน
               </span>
               <div className="my-2 sm:my-3 flex items-baseline gap-1 sm:gap-1.5">
                 <span className="text-2xl sm:text-3xl font-black text-gray-900">{monthEntries.length}</span>
-                <span className="text-[10px] sm:text-xs font-bold text-sky-700">วัน</span>
+                <span className="text-[10px] sm:text-xs font-bold text-green-700">วัน</span>
               </div>
               <span className="text-[10px] sm:text-[11px] text-gray-500">พลังบวก {positivePercent}%</span>
             </div>
@@ -392,7 +392,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                 Mood Insight
               </h4>
               {!isGeminiConfigured() && (
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+                <span className="text-[10px] font-bold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full shrink-0">
                   ยังไม่ได้ตั้งค่าคีย์ AI
                 </span>
               )}

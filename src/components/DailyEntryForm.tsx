@@ -242,9 +242,9 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-bold text-gray-700 bg-white hover:bg-amber-50 hover:text-amber-900 border border-gray-200 hover:border-amber-200 transition cursor-pointer shadow-2xs group"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-bold text-gray-700 bg-white hover:bg-green-50 hover:text-green-900 border border-gray-200 hover:border-green-200 transition cursor-pointer shadow-2xs group"
           >
-            <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-amber-600 group-hover:-translate-x-0.5 transition-transform" />
+            <ChevronLeft className="w-4 h-4 text-gray-400 group-hover:text-green-600 group-hover:-translate-x-0.5 transition-transform" />
             <span>กลับไปหน้าปฏิทิน</span>
           </button>
         </div>
@@ -275,7 +275,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
             <button
               type="button"
               onClick={() => onDateChange(todayStr)}
-              className="text-xs bg-white text-amber-800 hover:bg-amber-50 px-2.5 py-1 rounded-xl border border-gray-200 font-medium transition"
+              className="text-xs bg-white text-green-800 hover:bg-green-50 px-2.5 py-1 rounded-xl border border-gray-200 font-medium transition"
             >
               กลับสู่วันนี้
             </button>
@@ -285,8 +285,8 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
 
       {/* Notice if entry already recorded for this day */}
       {existingEntry && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-blue-900 text-xs md:text-sm">
-          <AlertCircle className="w-5 h-5 text-blue-600 shrink-0" />
+        <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-2xl flex items-center gap-2.5 text-teal-900 text-xs md:text-sm">
+          <AlertCircle className="w-5 h-5 text-teal-600 shrink-0" />
           <span>
             คุณเคยบันทึกอารมณ์ของวันที่ <strong>{selectedDate}</strong> แล้ว การกดบันทึกใหม่จะเป็นการแก้ไขข้อมูลเดิม
           </span>
@@ -322,18 +322,18 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-amber-600 shrink-0" />
+              <Tag className="w-4 h-4 text-green-600 shrink-0" />
               <label className="text-sm font-bold text-gray-800 cursor-pointer">
                 บริบท & กิจกรรมในวันนี้ (Tags)
               </label>
               {selectedTags.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200/70">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-100 text-green-800 border border-green-200/70">
                   {selectedTags.length}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-1 text-xs font-semibold text-amber-800 group-hover:text-amber-900 transition">
+            <div className="flex items-center gap-1 text-xs font-semibold text-green-800 group-hover:text-green-900 transition">
               <span>{isTagsExpanded ? 'พับเก็บ' : 'ดูทั้งหมด'}</span>
               <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${
@@ -358,7 +358,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
                       isHiddenOnMobile ? 'hidden sm:inline-flex' : 'inline-flex'
                     } ${
                       isSelected
-                        ? 'bg-amber-600 text-white shadow-xs font-bold'
+                        ? 'bg-green-600 text-white shadow-xs font-bold'
                         : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                     }`}
                   >
@@ -371,7 +371,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
               <button
                 type="button"
                 onClick={() => setIsTagsExpanded(true)}
-                className="px-2.5 py-1 rounded-xl text-xs font-bold text-amber-700 hover:text-amber-800 hover:bg-amber-100/70 bg-white border border-dashed border-amber-300 transition cursor-pointer inline-flex items-center gap-1"
+                className="px-2.5 py-1 rounded-xl text-xs font-bold text-green-700 hover:text-green-800 hover:bg-green-100/70 bg-white border border-dashed border-green-300 transition cursor-pointer inline-flex items-center gap-1"
               >
                 <Plus className="w-3 h-3" />
                 <span>เพิ่มเติม...</span>
@@ -398,7 +398,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
                       onClick={() => toggleTag(tag)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
                         isSelected
-                          ? 'bg-amber-600 text-white shadow-xs font-bold'
+                          ? 'bg-green-600 text-white shadow-xs font-bold'
                           : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                       }`}
                     >
@@ -423,13 +423,13 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
                         handleAddCustomTag(e);
                       }
                     }}
-                    className="w-full text-xs md:text-sm px-3.5 py-2 rounded-xl bg-white border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                    className="w-full text-xs md:text-sm px-3.5 py-2 rounded-xl bg-white border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500/50 focus:border-green-500"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={handleAddCustomTag}
-                  className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                  className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-xl flex items-center gap-1 transition cursor-pointer shadow-2xs"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   เพิ่มแท็ก
@@ -453,7 +453,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
             placeholder="วันนี้มีเรื่องราวอะไรเกิดขึ้นบ้าง? อะไรทำให้รู้สึกแบบนี้? บันทึกความรู้สึกสั้นๆ เพื่อทบทวนตัวเอง..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full text-sm p-4 rounded-2xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 resize-none"
+            className="w-full text-sm p-4 rounded-2xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-green-500/50 focus:border-green-500 resize-none"
           />
         </div>
 
@@ -472,7 +472,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
           />
 
           {photoUrl ? (
-            <div className="relative inline-block group rounded-2xl overflow-hidden border-2 border-amber-200">
+            <div className="relative inline-block group rounded-2xl overflow-hidden border-2 border-green-200">
               <img
                 src={photoUrl}
                 alt="Daily upload preview"
@@ -491,9 +491,9 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2.5 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-amber-500 rounded-2xl text-xs md:text-sm text-gray-600 hover:text-amber-800 bg-gray-50/60 hover:bg-amber-50/40 transition cursor-pointer"
+              className="flex items-center gap-2.5 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-green-500 rounded-2xl text-xs md:text-sm text-gray-600 hover:text-green-800 bg-gray-50/60 hover:bg-green-50/40 transition cursor-pointer"
             >
-              <ImageIcon className="w-5 h-5 text-gray-400 group-hover:text-amber-600" />
+              <ImageIcon className="w-5 h-5 text-gray-400 group-hover:text-green-600" />
               <span>แนบรูปภาพ 1 รูป (เช่น ภาพอาหาร, ท้องฟ้า, ความทรงจำวันนี้)</span>
             </button>
           )}
@@ -524,7 +524,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full py-3.5 px-6 rounded-2xl font-bold text-white bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-99 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base disabled:opacity-50 cursor-pointer"
+            className="w-full py-3.5 px-6 rounded-2xl font-bold text-white bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 active:scale-99 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base disabled:opacity-50 cursor-pointer"
           >
             {isSaving ? (
               <>

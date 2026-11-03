@@ -85,13 +85,13 @@ export const PaperShredderModal: React.FC<PaperShredderModalProps> = ({
         {/* SHREDDER TOP CONTROL PANEL */}
         <div className="bg-stone-950 border-b border-stone-800 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <div className="w-7 h-7 rounded-lg bg-green-500/15 border border-green-500/30 flex items-center justify-center text-green-400">
               <Scissors className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-mono font-black text-amber-400 tracking-wider flex items-center gap-1.5">
+              <div className="text-xs font-mono font-black text-green-400 tracking-wider flex items-center gap-1.5">
                 <span>AROM-SHRED 3000</span>
-                <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold">
+                <span className="text-[9px] px-1.5 py-0.2 bg-green-500/20 text-green-300 rounded font-bold">
                   HEAVY DUTY
                 </span>
               </div>
@@ -178,7 +178,7 @@ export const PaperShredderModal: React.FC<PaperShredderModalProps> = ({
                 duration: 2.1,
                 ease: 'linear',
               }}
-              className="relative w-full bg-[#FCFBF7] text-stone-900 p-3.5 rounded-t-xl shadow-lg border-t-4 border-amber-500 font-sans space-y-2 select-none"
+              className="relative w-full bg-[#FCFBF7] text-stone-900 p-3.5 rounded-t-xl shadow-lg border-t-4 border-green-500 font-sans space-y-2 select-none"
             >
               {/* Paper Watermark Stamp */}
               <div className="absolute right-2 top-2 opacity-25 pointer-events-none text-right">
@@ -215,7 +215,7 @@ export const PaperShredderModal: React.FC<PaperShredderModalProps> = ({
 
               {/* Post Drawing thumbnail if any */}
               {post.drawing && (
-                <div className="w-full h-16 rounded-lg bg-amber-50/70 border border-stone-200 flex items-center justify-center overflow-hidden">
+                <div className="w-full h-16 rounded-lg bg-green-50/70 border border-stone-200 flex items-center justify-center overflow-hidden">
                   <img
                     src={post.drawing}
                     alt="post drawing"
@@ -226,7 +226,7 @@ export const PaperShredderModal: React.FC<PaperShredderModalProps> = ({
 
               {/* Post Note Text */}
               {post.text ? (
-                <p className="text-[11px] text-stone-700 leading-tight line-clamp-3 bg-amber-50/40 p-1.5 rounded border border-amber-100">
+                <p className="text-[11px] text-stone-700 leading-tight line-clamp-3 bg-green-50/40 p-1.5 rounded border border-green-100">
                   {post.text}
                 </p>
               ) : (
@@ -317,7 +317,7 @@ export const PaperShredderModal: React.FC<PaperShredderModalProps> = ({
                     >
                       {/* Faint text/drawing ink stripe simulation */}
                       <div className="absolute inset-x-0.5 top-2 h-1 bg-stone-400/40 rounded-full" />
-                      <div className="absolute inset-x-0.5 top-5 h-2 bg-amber-400/50 rounded-xs" />
+                      <div className="absolute inset-x-0.5 top-5 h-2 bg-green-400/50 rounded-xs" />
                       <div className="absolute inset-x-0.5 top-9 h-1.5 bg-stone-500/40 rounded-full" />
                     </motion.div>
                   );
@@ -331,7 +331,7 @@ export const PaperShredderModal: React.FC<PaperShredderModalProps> = ({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
-                className="absolute bottom-1 inset-x-4 h-6 bg-gradient-to-t from-stone-200 via-amber-100 to-transparent rounded-full opacity-60 blur-xs"
+                className="absolute bottom-1 inset-x-4 h-6 bg-gradient-to-t from-stone-200 via-green-100 to-transparent rounded-full opacity-60 blur-xs"
               />
             )}
 
@@ -379,8 +379,8 @@ export const PaperShredderModal: React.FC<PaperShredderModalProps> = ({
               </button>
             </>
           ) : status === 'shredding' ? (
-            <div className="w-full py-1 text-center flex items-center justify-center gap-2 text-amber-400 font-mono text-xs font-bold animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <div className="w-full py-1 text-center flex items-center justify-center gap-2 text-green-400 font-mono text-xs font-bold animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-ping" />
               <span>กำลังบดทำลายเอกสารโพสต์ กรุณารอสักครู่...</span>
             </div>
           ) : (

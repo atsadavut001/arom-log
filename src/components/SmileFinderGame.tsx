@@ -176,12 +176,12 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
     <div className="max-w-md mx-auto w-full">
       {/* 1. INTRO STATE */}
       {gameState === 'intro' && (
-        <div className="text-center py-6 sm:py-8 space-y-6 bg-white/90 rounded-3xl p-6 sm:p-8 border border-amber-200/80 shadow-md">
-          <div className="w-24 h-24 mx-auto rounded-3xl bg-amber-100/90 border-2 border-amber-300 flex items-center justify-center shadow-inner text-5xl animate-bounce">
+        <div className="text-center py-6 sm:py-8 space-y-6 bg-white/90 rounded-3xl p-6 sm:p-8 border border-green-200/80 shadow-md">
+          <div className="w-24 h-24 mx-auto rounded-3xl bg-green-100/90 border-2 border-green-300 flex items-center justify-center shadow-inner text-5xl animate-bounce">
             😊
           </div>
           <div>
-            <span className="inline-block px-3 py-1 bg-amber-100 text-amber-900 font-bold text-xs rounded-full mb-2">
+            <span className="inline-block px-3 py-1 bg-green-100 text-green-900 font-bold text-xs rounded-full mb-2">
               ตามหาฉันสิ ✨
             </span>
             <h4 className="text-2xl font-black text-gray-900">
@@ -192,17 +192,17 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
             </p>
           </div>
 
-          <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/70 text-left text-xs text-gray-700 space-y-2 shadow-2xs">
+          <div className="bg-green-50/70 p-4 rounded-2xl border border-green-200/70 text-left text-xs text-gray-700 space-y-2 shadow-2xs">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-amber-900">1. วอร์มอัพ 3x3:</span>
+              <span className="font-bold text-green-900">1. วอร์มอัพ 3x3:</span>
               <span>ดึงสมาธิอย่างง่ายและรวดเร็ว</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-amber-900">2. โฟกัส 4x4:</span>
+              <span className="font-bold text-green-900">2. โฟกัส 4x4:</span>
               <span>ฝึกตัดสิ่งรบกวนรอบตัว</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-amber-900">3. โฟลว์ 5x5:</span>
+              <span className="font-bold text-green-900">3. โฟลว์ 5x5:</span>
               <span>ปล่อยวางความคิดลบ</span>
             </div>
           </div>
@@ -210,7 +210,7 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
           <button
             type="button"
             onClick={startGame}
-            className="w-full py-4 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-black text-sm sm:text-base shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-4 px-6 rounded-2xl bg-green-500 hover:bg-green-600 active:scale-98 text-white font-black text-sm sm:text-base shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2"
           >
             <span>เริ่มเกมฝึกสมาธิ</span>
             <ArrowRight className="w-4 h-4" />
@@ -220,11 +220,11 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
 
       {/* 2. PLAYING STATE */}
       {gameState === 'playing' && (
-        <div className="bg-white/95 rounded-3xl p-5 sm:p-8 border border-amber-200/80 shadow-md space-y-6">
+        <div className="bg-white/95 rounded-3xl p-5 sm:p-8 border border-green-200/80 shadow-md space-y-6">
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-gray-600 font-semibold">
-              <span className="px-2.5 py-1 rounded-full bg-amber-100/80 text-amber-900 font-bold">
+              <span className="px-2.5 py-1 rounded-full bg-green-100/80 text-green-900 font-bold">
                 {gridSize === 3
                   ? 'เซต 1: วอร์มอัพ (3x3)'
                   : gridSize === 4
@@ -235,9 +235,9 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
                 รอบที่ {currentRound} / {totalPlannedRounds}
               </span>
             </div>
-            <div className="w-full bg-amber-100 h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-green-100 h-2.5 rounded-full overflow-hidden">
               <div
-                className="h-full bg-amber-500 transition-all duration-300 rounded-full"
+                className="h-full bg-green-500 transition-all duration-300 rounded-full"
                 style={{
                   width: `${Math.min(100, (currentRound / totalPlannedRounds) * 100)}%`,
                 }}
@@ -266,10 +266,10 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
                   onClick={() => handleCellClick(index)}
                   className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-all duration-150 cursor-pointer select-none active:scale-95 ${
                     isClicked && isTarget
-                      ? 'bg-amber-300 border-amber-500 scale-110 shadow-lg ring-4 ring-amber-200'
+                      ? 'bg-green-300 border-green-500 scale-110 shadow-lg ring-4 ring-green-200'
                       : isClicked && !isTarget
                       ? 'bg-gray-200 border-gray-400 shake'
-                      : 'bg-white/90 border-amber-100 hover:border-amber-300 hover:bg-amber-50/70 shadow-2xs'
+                      : 'bg-white/90 border-green-100 hover:border-green-300 hover:bg-green-50/70 shadow-2xs'
                   }`}
                   style={{
                     fontSize: gridSize === 3 ? '2.3rem' : gridSize === 4 ? '1.8rem' : '1.4rem',
@@ -283,7 +283,7 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
             })}
           </div>
 
-          <p className="text-center text-xs text-amber-900/70 font-medium">
+          <p className="text-center text-xs text-green-900/70 font-medium">
             "แตะที่ใบหน้ายิ้ม 😊 ให้เร็วที่สุด"
           </p>
         </div>
@@ -321,13 +321,13 @@ export const SmileFinderGame: React.FC<SmileFinderGameProps> = ({
             </div>
           </div>
 
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 text-left">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3 text-left">
             <span className="text-3xl">🧘</span>
             <div>
-              <h5 className="font-bold text-amber-900 text-xs sm:text-sm">
+              <h5 className="font-bold text-green-900 text-xs sm:text-sm">
                 ปลดล็อคตรา: ผู้ฝึกจิตใจนิ่ง (Mindful Peace)
               </h5>
-              <p className="text-[11px] text-amber-700">
+              <p className="text-[11px] text-green-700">
                 ฝึกมองหาความสดใสและสร้างสมาธิ
               </p>
             </div>

@@ -198,12 +198,12 @@ export const MiniGame: React.FC<MiniGameProps> = ({
   // Background tint style based on active tab and warmthLevel
   const bgWarmthStyles =
     activeGameTab === 'vent'
-      ? 'bg-amber-50/70 border-amber-200/90'
+      ? 'bg-green-50/70 border-green-200/90'
       : warmthLevel >= 10
-      ? 'bg-amber-50/90 border-amber-200/80'
+      ? 'bg-green-50/90 border-green-200/80'
       : warmthLevel >= 6
-      ? 'bg-orange-50/70 border-orange-200/80'
-      : 'bg-stone-50/90 border-amber-200/80';
+      ? 'bg-teal-50/70 border-teal-200/80'
+      : 'bg-stone-50/90 border-green-200/80';
 
   return (
     <div
@@ -219,7 +219,7 @@ export const MiniGame: React.FC<MiniGameProps> = ({
         } ${bgWarmthStyles}`}
       >
         {/* Sticky Top Header */}
-        <div className="shrink-0 p-3 sm:p-5 pb-2.5 border-b border-amber-200/60 bg-white/70 backdrop-blur-xs">
+        <div className="shrink-0 p-3 sm:p-5 pb-2.5 border-b border-green-200/60 bg-white/70 backdrop-blur-xs">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xl">
@@ -231,7 +231,7 @@ export const MiniGame: React.FC<MiniGameProps> = ({
                     ? 'เขียนแล้วบดขยี้ทิ้ง'
                     : 'ตามหาใบหน้ายิ้ม'}
                 </h3>
-                <p className="text-[11px] text-amber-800">
+                <p className="text-[11px] text-green-800">
                   {activeGameTab === 'vent'
                     ? 'พิมพ์ระบายความหงุดหงิด แล้วบดหรือเผาทำลายทิ้ง'
                     : 'ฝึกดึงสมาธิและปรับสมดุลความคิด'}
@@ -256,11 +256,11 @@ export const MiniGame: React.FC<MiniGameProps> = ({
               onClick={() => setActiveGameTab('vent')}
               className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeGameTab === 'vent'
-                  ? 'bg-white text-orange-950 shadow-xs ring-1 ring-orange-200'
+                  ? 'bg-white text-teal-950 shadow-xs ring-1 ring-teal-200'
                   : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              <Flame className="w-3.5 h-3.5 text-orange-500" />
+              <Flame className="w-3.5 h-3.5 text-teal-500" />
               <span>เขียนแล้วบดขยี้ทิ้ง</span>
             </button>
             <button
@@ -295,11 +295,11 @@ export const MiniGame: React.FC<MiniGameProps> = ({
               {/* STATE 1: INTRO */}
               {gameState === 'intro' && (
                 <div className="text-center py-4 space-y-5">
-                  <div className="w-20 h-20 mx-auto rounded-3xl bg-amber-100/90 border-2 border-amber-300 flex items-center justify-center shadow-inner text-4xl animate-bounce">
+                  <div className="w-20 h-20 mx-auto rounded-3xl bg-green-100/90 border-2 border-green-300 flex items-center justify-center shadow-inner text-4xl animate-bounce">
                     😊
                   </div>
                   <div>
-                    <span className="inline-block px-3 py-1 bg-amber-100 text-amber-900 font-bold text-xs rounded-full mb-1">
+                    <span className="inline-block px-3 py-1 bg-green-100 text-green-900 font-bold text-xs rounded-full mb-1">
                       ตามหาฉันสิ
                     </span>
                     <h4 className="text-xl font-bold text-gray-900">
@@ -310,17 +310,17 @@ export const MiniGame: React.FC<MiniGameProps> = ({
                     </p>
                   </div>
 
-                  <div className="bg-white/80 p-3 rounded-2xl border border-amber-200/60 text-left text-xs text-gray-700 space-y-1.5 shadow-2xs">
+                  <div className="bg-white/80 p-3 rounded-2xl border border-green-200/60 text-left text-xs text-gray-700 space-y-1.5 shadow-2xs">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-amber-900">1. วอร์มอัพ 3x3:</span>
+                      <span className="font-bold text-green-900">1. วอร์มอัพ 3x3:</span>
                       <span>ดึงสมาธิอย่างง่ายและรวดเร็ว</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-amber-900">2. โฟกัส 4x4:</span>
+                      <span className="font-bold text-green-900">2. โฟกัส 4x4:</span>
                       <span>ฝึกตัดสิ่งรบกวนรอบตัว</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-amber-900">3. โฟลว์ 5x5:</span>
+                      <span className="font-bold text-green-900">3. โฟลว์ 5x5:</span>
                       <span>ปล่อยวางความคิดลบ</span>
                     </div>
                   </div>
@@ -328,7 +328,7 @@ export const MiniGame: React.FC<MiniGameProps> = ({
                   <button
                     type="button"
                     onClick={startGame}
-                    className="w-full py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm sm:text-base shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-green-500 hover:bg-green-600 text-white font-extrabold text-sm sm:text-base shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2"
                   >
                     <span>เริ่มเกมฝึกสมาธิ</span>
                     <ArrowRight className="w-4 h-4" />
@@ -353,9 +353,9 @@ export const MiniGame: React.FC<MiniGameProps> = ({
                         รอบที่ {currentRound} / {totalPlannedRounds}
                       </span>
                     </div>
-                    <div className="w-full bg-amber-200/40 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-green-200/40 h-2 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-amber-500 transition-all duration-300 rounded-full"
+                        className="h-full bg-green-500 transition-all duration-300 rounded-full"
                         style={{
                           width: `${Math.min(100, (currentRound / totalPlannedRounds) * 100)}%`,
                         }}
@@ -384,10 +384,10 @@ export const MiniGame: React.FC<MiniGameProps> = ({
                           onClick={() => handleCellClick(index)}
                           className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-all duration-150 cursor-pointer select-none active:scale-95 ${
                             isClicked && isTarget
-                              ? 'bg-amber-300 border-amber-500 scale-110 shadow-lg ring-4 ring-amber-200'
+                              ? 'bg-green-300 border-green-500 scale-110 shadow-lg ring-4 ring-green-200'
                               : isClicked && !isTarget
                               ? 'bg-gray-200 border-gray-400 shake'
-                              : 'bg-white/90 border-amber-100 hover:border-amber-300 hover:bg-amber-50/70 shadow-2xs'
+                              : 'bg-white/90 border-green-100 hover:border-green-300 hover:bg-green-50/70 shadow-2xs'
                           }`}
                           style={{
                             fontSize: gridSize === 3 ? '2.1rem' : gridSize === 4 ? '1.6rem' : '1.3rem',
@@ -401,7 +401,7 @@ export const MiniGame: React.FC<MiniGameProps> = ({
                     })}
                   </div>
 
-                  <p className="text-center text-xs text-amber-900/70 italic">
+                  <p className="text-center text-xs text-green-900/70 italic">
                     "ตามหาใบหน้ายิ้ม 😊 ท่ามกลางใบหน้าบึ้งตึง"
                   </p>
                 </div>
@@ -439,13 +439,13 @@ export const MiniGame: React.FC<MiniGameProps> = ({
                     </div>
                   </div>
 
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 text-left">
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3 text-left">
                     <span className="text-3xl">🧘</span>
                     <div>
-                      <h5 className="font-bold text-amber-900 text-xs sm:text-sm">
+                      <h5 className="font-bold text-green-900 text-xs sm:text-sm">
                         ปลดล็อคตรา: ผู้ฝึกจิตใจนิ่ง
                       </h5>
-                      <p className="text-[11px] text-amber-700">
+                      <p className="text-[11px] text-green-700">
                         ฝึกมองหาความสดใสและสร้างสมาธิ
                       </p>
                     </div>

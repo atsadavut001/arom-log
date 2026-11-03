@@ -201,10 +201,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onOpenStreakModal}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100/80 text-orange-700 border border-orange-200/60 transition cursor-pointer active:scale-95 text-xs font-bold shadow-2xs"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100/80 text-teal-700 border border-teal-200/60 transition cursor-pointer active:scale-95 text-xs font-bold shadow-2xs"
                 title="ดูสถิติต่อเนื่อง & รางวัล (Streak)"
               >
-                <Flame className="w-4 h-4 text-orange-500 fill-orange-400 shrink-0" />
+                <Flame className="w-4 h-4 text-teal-500 fill-teal-400 shrink-0" />
                 <span>{streak}</span>
               </button>
 
@@ -213,10 +213,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   type="button"
                   onClick={onOpenSupportModal}
-                  className="p-2 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 text-amber-900 border border-amber-300/80 transition cursor-pointer active:scale-95 shadow-2xs group"
+                  className="p-2 rounded-xl bg-gradient-to-r from-green-50 to-teal-50 hover:from-green-100 hover:to-teal-100 text-green-900 border border-green-300/80 transition cursor-pointer active:scale-95 shadow-2xs group"
                   title="เลี้ยงกาแฟผู้พัฒนา (Buy Me a Coffee)"
                 >
-                  <Coffee className="w-4 h-4 text-amber-700 group-hover:rotate-12 transition-transform shrink-0" />
+                  <Coffee className="w-4 h-4 text-green-700 group-hover:rotate-12 transition-transform shrink-0" />
                 </button>
               )}
 
@@ -242,8 +242,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => handleNavClick('profile')}
                 className={`flex items-center gap-2 p-1 xl:px-2 rounded-xl border transition-all cursor-pointer ${
                   activeTab === 'profile'
-                    ? 'bg-amber-100/90 border-amber-300 ring-2 ring-amber-200 shadow-xs'
-                    : 'bg-stone-50/80 hover:bg-amber-50/60 border-stone-200/80'
+                    ? 'bg-green-100/90 border-green-300 ring-2 ring-green-200 shadow-xs'
+                    : 'bg-stone-50/80 hover:bg-green-50/60 border-stone-200/80'
                 }`}
                 title="ไปยังโปรไฟล์ของคุณ"
               >
@@ -298,13 +298,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => handleNavClick(item.id)}
               className={`flex-1 py-1 px-0.5 flex flex-col items-center justify-center gap-0.5 rounded-xl transition cursor-pointer ${
                 isActive
-                  ? 'text-amber-600 font-bold'
+                  ? 'text-green-600 font-bold'
                   : 'text-gray-500 hover:text-gray-900 font-medium'
               }`}
             >
               <div
                 className={`p-1 rounded-lg transition-transform ${
-                  isActive ? 'bg-amber-100/80 scale-105 shadow-2xs' : ''
+                  isActive ? 'bg-green-100/80 scale-105 shadow-2xs' : ''
                 }`}
               >
                 {item.id === 'profile' ? (

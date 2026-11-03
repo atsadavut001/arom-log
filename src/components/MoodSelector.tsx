@@ -176,7 +176,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
             <img
               src={customDrawing}
               alt="Custom Drawing"
-              className="w-13 h-13 sm:w-15 sm:h-15 rounded-full border-2 border-amber-400 bg-white object-cover shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
+              className="w-13 h-13 sm:w-15 sm:h-15 rounded-full border-2 border-green-400 bg-white object-cover shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
             />
           ) : selectedPreset.emojiUrl ? (
             <img
@@ -213,8 +213,8 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
         </div>
 
         {/* Change button chip */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 group-hover:bg-white text-gray-700 group-hover:text-amber-800 border border-gray-200/80 group-hover:border-amber-300 text-xs font-bold transition shadow-2xs shrink-0">
-          <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 group-hover:bg-white text-gray-700 group-hover:text-green-800 border border-gray-200/80 group-hover:border-green-300 text-xs font-bold transition shadow-2xs shrink-0">
+          <Edit3 className="w-3.5 h-3.5 text-green-600" />
           <span className="hidden xs:inline">เปลี่ยน</span>
         </div>
       </button>
@@ -255,7 +255,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
 
             {/* CLOCK FACE DIAL (Responsive, Mobile-first) */}
             <div className="relative w-full py-4 flex items-center justify-center">
-              <div className="relative w-[295px] h-[295px] xs:w-[325px] xs:h-[325px] sm:w-[365px] sm:h-[365px] rounded-full bg-linear-to-b from-stone-50/90 via-amber-50/30 to-orange-50/50 shadow-md touch-manipulation flex items-center justify-center transition-all">
+              <div className="relative w-[295px] h-[295px] xs:w-[325px] xs:h-[325px] sm:w-[365px] sm:h-[365px] rounded-full bg-linear-to-b from-stone-50/90 via-green-50/30 to-teal-50/50 shadow-md touch-manipulation flex items-center justify-center transition-all">
                 {/* Clock Background and Animated Hand SVG */}
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none rounded-full"
@@ -314,7 +314,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
                           className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all duration-200 cursor-pointer flex items-center justify-center select-none active:scale-95 ${
                             isSelected
                               ? 'w-10.5 h-10.5 xs:w-11.5 xs:h-11.5 sm:w-13 sm:h-13 shadow-md scale-115 z-20 ring-2 ring-offset-1'
-                              : 'w-8.5 h-8.5 xs:w-9.5 xs:h-9.5 sm:w-11 sm:h-11 shadow-2xs hover:scale-115 hover:border-amber-300 z-10'
+                              : 'w-8.5 h-8.5 xs:w-9.5 xs:h-9.5 sm:w-11 sm:h-11 shadow-2xs hover:scale-115 hover:border-green-300 z-10'
                           }`}
                         >
                           {isCustom ? (
@@ -325,7 +325,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
                                 className="w-full h-full rounded-full object-cover"
                               />
                             ) : (
-                              <Palette className="w-4 h-4 xs:w-5 xs:h-5 text-orange-500 shrink-0" />
+                              <Palette className="w-4 h-4 xs:w-5 xs:h-5 text-teal-500 shrink-0" />
                             )
                           ) : preset.emojiUrl ? (
                             <img
@@ -374,7 +374,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
                           className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all duration-200 cursor-pointer flex items-center justify-center select-none active:scale-95 font-extrabold ${
                             isSelected
                               ? 'w-10.5 h-10.5 xs:w-11.5 xs:h-11.5 sm:w-13 sm:h-13 shadow-md scale-115 z-20 ring-2 ring-offset-1 text-white text-xs xs:text-sm sm:text-base'
-                              : 'w-8.5 h-8.5 xs:w-9.5 xs:h-9.5 sm:w-11 sm:h-11 shadow-2xs hover:scale-115 hover:border-amber-300 z-10 text-[11px] xs:text-xs sm:text-sm'
+                              : 'w-8.5 h-8.5 xs:w-9.5 xs:h-9.5 sm:w-11 sm:h-11 shadow-2xs hover:scale-115 hover:border-green-300 z-10 text-[11px] xs:text-xs sm:text-sm'
                           }`}
                         >
                           <span>{level.score}</span>
@@ -403,9 +403,9 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
                           <img
                             src={customDrawing}
                             alt="หน้าตาที่วาดเอง"
-                            className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 rounded-full border-2 border-amber-400 object-cover shadow-2xs group-hover:scale-105 transition-transform"
+                            className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 rounded-full border-2 border-green-400 object-cover shadow-2xs group-hover:scale-105 transition-transform"
                           />
-                          <span className="absolute -bottom-1 -right-1 p-0.5 bg-amber-500 text-white rounded-full text-[9px] shadow-xs">
+                          <span className="absolute -bottom-1 -right-1 p-0.5 bg-green-500 text-white rounded-full text-[9px] shadow-xs">
                             <Edit3 className="w-2.5 h-2.5" />
                           </span>
                         </div>
@@ -444,7 +444,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectionMode(isEmojiMode ? 'scale' : 'emoji')}
-                    className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-full bg-linear-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 text-amber-950 border border-amber-300 transition active:scale-95 shadow-2xs cursor-pointer select-none"
+                    className="mt-1 flex items-center gap-1 px-2.5 py-1 rounded-full bg-linear-to-r from-green-50 to-teal-50 hover:from-green-100 hover:to-teal-100 text-green-950 border border-green-300 transition active:scale-95 shadow-2xs cursor-pointer select-none"
                     title={isEmojiMode ? 'สลับไปยังหน้าปัดคะแนน 0-10' : 'สลับไปยังหน้าปัด Emoji Mood'}
                   >
                     {isEmojiMode ? (
@@ -454,7 +454,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
                       </>
                     ) : (
                       <>
-                        <Smile className="w-3 h-3 text-amber-600 shrink-0" />
+                        <Smile className="w-3 h-3 text-green-600 shrink-0" />
                         <span className="text-[10px] font-bold">สลับเป็น Emoji</span>
                       </>
                     )}
@@ -467,7 +467,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
             <button
               type="button"
               onClick={handleDoneClockModal}
-              className="mt-2 w-full py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white text-sm font-bold transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
+              className="mt-2 w-full py-3 px-4 rounded-2xl bg-green-500 hover:bg-green-600 active:scale-[0.99] text-white text-sm font-bold transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
             >
               <Check className="w-4 h-4" />
               <span>เสร็จสิ้น</span>
@@ -494,7 +494,7 @@ export const MoodSelector: React.FC<MoodSelectorProps> = ({
             {/* Modal 2 Header */}
             <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Palette className="w-4 h-4 text-amber-600" />
+                <Palette className="w-4 h-4 text-green-600" />
                 <h3 className="font-bold text-gray-900 text-sm sm:text-base">
                   วาดหน้าตา & ให้คะแนนอารมณ์
                 </h3>

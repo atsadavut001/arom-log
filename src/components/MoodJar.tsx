@@ -455,7 +455,7 @@ export const MoodJar: React.FC<MoodJarProps> = ({
             <ChevronLeft className="w-4 h-4" />
           </button>
           <div className="px-3 text-xs md:text-sm font-bold text-gray-800 flex items-center gap-1.5 min-w-[130px] justify-center">
-            <Calendar className="w-3.5 h-3.5 text-amber-600" />
+            <Calendar className="w-3.5 h-3.5 text-green-600" />
             {formatMonthThai(selectedMonth)}
           </div>
           <button
@@ -485,8 +485,8 @@ export const MoodJar: React.FC<MoodJarProps> = ({
             {/* Glass Jar Outer SVG Aesthetic Frame - 100% Crystal Clear (No Blur, No Milkiness) */}
             <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center">
               {/* Cork Lid */}
-              <div className="w-36 sm:w-44 h-7 sm:h-8 bg-linear-to-b from-amber-700 to-amber-900 rounded-t-xl shadow-md border-b-2 border-amber-950/40 relative">
-                <div className="absolute inset-x-2 top-1 h-1 bg-amber-600/60 rounded-full" />
+              <div className="w-36 sm:w-44 h-7 sm:h-8 bg-linear-to-b from-green-700 to-green-900 rounded-t-xl shadow-md border-b-2 border-green-950/40 relative">
+                <div className="absolute inset-x-2 top-1 h-1 bg-green-600/60 rounded-full" />
               </div>
               {/* Jar Neck with subtle rim blur */}
               <div className="w-44 sm:w-52 h-3.5 sm:h-4 bg-transparent border-x-2 border-slate-300/70 relative overflow-hidden">
@@ -494,7 +494,7 @@ export const MoodJar: React.FC<MoodJarProps> = ({
                 <div className="absolute inset-y-0 right-0 w-2 bg-linear-to-l from-white/25 to-transparent backdrop-blur-[1.5px]" />
               </div>
               {/* Jar Body: Crystal Clear Center with Soft Blurred Curved Glass Rim */}
-              <div className="w-[260px] xs:w-[285px] sm:w-[310px] h-[320px] sm:h-[360px] rounded-b-[40px] sm:rounded-b-[45px] rounded-t-[18px] sm:rounded-t-[20px] border-[3px] border-slate-300/70 bg-transparent shadow-lg shadow-sky-900/5 relative overflow-hidden ring-1 ring-inset ring-white/60">
+              <div className="w-[260px] xs:w-[285px] sm:w-[310px] h-[320px] sm:h-[360px] rounded-b-[40px] sm:rounded-b-[45px] rounded-t-[18px] sm:rounded-t-[20px] border-[3px] border-slate-300/70 bg-transparent shadow-lg shadow-green-900/5 relative overflow-hidden ring-1 ring-inset ring-white/60">
                 {/* 1. Left Edge Curved Glass Blur */}
                 <div className="absolute inset-y-0 left-0 w-3.5 sm:w-4 bg-linear-to-r from-white/30 via-white/10 to-transparent backdrop-blur-[2px] rounded-bl-[40px] pointer-events-none" />
 
@@ -534,9 +534,9 @@ export const MoodJar: React.FC<MoodJarProps> = ({
               <button
                 type="button"
                 onClick={requestOrientationPermission}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold shadow-2xs cursor-pointer transition active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-green-100 hover:bg-green-200 text-green-900 border border-green-300 text-xs font-bold shadow-2xs cursor-pointer transition active:scale-95"
               >
-                <Smartphone className="w-3.5 h-3.5 text-amber-700" />
+                <Smartphone className="w-3.5 h-3.5 text-green-700" />
                 <span>แตะที่นี่เพื่อเปิดเซนเซอร์เอียงโหล (iPhone) 📱</span>
               </button>
             ) : (
@@ -551,12 +551,12 @@ export const MoodJar: React.FC<MoodJarProps> = ({
         {/* Right: Jar Stats & Inspector */}
         <div className="md:col-span-5 space-y-5">
           {/* Jar Capacity / Summary */}
-          <div className="bg-linear-to-br from-amber-50 to-orange-50/50 border border-amber-200/80 rounded-3xl p-5 shadow-xs">
+          <div className="bg-linear-to-br from-green-50 to-teal-50/50 border border-green-200/80 rounded-3xl p-5 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-green-800 uppercase tracking-wider">
                 สถิติในโหลประจำเดือน
               </span>
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-200/80 text-amber-950">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-green-200/80 text-green-950">
                 {monthEntries.length} ลูกแก้ว
               </span>
             </div>
@@ -571,13 +571,13 @@ export const MoodJar: React.FC<MoodJarProps> = ({
             </div>
 
             {/* Mood Category Breakdown Pills */}
-            <div className="mt-4 pt-4 border-t border-amber-200/60 grid grid-cols-2 gap-2">
+            <div className="mt-4 pt-4 border-t border-green-200/60 grid grid-cols-2 gap-2">
               {MOOD_PRESETS.filter((p) => (moodCounts[p.type] || 0) > 0).map((preset) => {
                 const count = moodCounts[preset.type] || 0;
                 return (
                   <div
                     key={preset.type}
-                    className="flex items-center justify-between p-2 rounded-xl bg-white/80 border border-amber-200/50 shadow-2xs text-xs"
+                    className="flex items-center justify-between p-2 rounded-xl bg-white/80 border border-green-200/50 shadow-2xs text-xs"
                   >
                     <span className="flex items-center gap-1.5 font-medium text-gray-800">
                       {preset.emojiUrl ? (
@@ -591,7 +591,7 @@ export const MoodJar: React.FC<MoodJarProps> = ({
                       )}
                       <span>{preset.label}</span>
                     </span>
-                    <span className="font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded-lg text-[11px]">
+                    <span className="font-bold text-green-900 bg-green-100 px-1.5 py-0.5 rounded-lg text-[11px]">
                       {count}
                     </span>
                   </div>
@@ -602,9 +602,9 @@ export const MoodJar: React.FC<MoodJarProps> = ({
 
           {/* Orb Inspector Detail View when clicked/hovered */}
           {hoveredEntry ? (
-            <div className="bg-white border-2 border-amber-300 rounded-3xl p-5 shadow-sm space-y-3 animate-in fade-in duration-200">
+            <div className="bg-white border-2 border-green-300 rounded-3xl p-5 shadow-sm space-y-3 animate-in fade-in duration-200">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                <span className="text-xs font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
                   วันที่ {hoveredEntry.date}
                 </span>
                 <div className="flex items-center gap-2">

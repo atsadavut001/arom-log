@@ -37,7 +37,7 @@ export const RIBBON_COLOR_CONFIG: Record<
   { bg: string; hoverBg: string; border: string; text: string; name: string }
 > = {
   rose: { bg: 'bg-rose-300', hoverBg: 'hover:bg-rose-400', border: 'border-rose-200', text: 'text-white', name: 'ชมพู' },
-  amber: { bg: 'bg-amber-300', hoverBg: 'hover:bg-amber-400', border: 'border-amber-200', text: 'text-slate-700', name: 'เหลือง' },
+  amber: { bg: 'bg-green-300', hoverBg: 'hover:bg-green-400', border: 'border-green-200', text: 'text-slate-700', name: 'เหลือง' },
   emerald: { bg: 'bg-emerald-300', hoverBg: 'hover:bg-emerald-400', border: 'border-emerald-200', text: 'text-white', name: 'เขียว' },
   indigo: { bg: 'bg-indigo-300', hoverBg: 'hover:bg-indigo-400', border: 'border-indigo-200', text: 'text-white', name: 'ฟ้า' },
 };
@@ -976,47 +976,9 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                           </button>
                         </div>
                         <h2 className="text-lg sm:text-2xl font-black text-slate-800 mt-1">
-                          เดือน {monthName} พ.ศ. {thaiBuddhistYear}
+                          {monthName} พ.ศ. {thaiBuddhistYear}
                         </h2>
-                        <p className="text-xs text-stone-500">
-                          ของ {userProfile.displayName} ({userProfile.handle ? `@${userProfile.handle.replace(/^@/, '')}` : `@${userProfile.userId.slice(0, 6)}`})
-                        </p>
                       </div>
-
-                    {/* Year Key Stats Mini Cards */}
-                    <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                      <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
-                        <div className="text-[10px] text-slate-600 font-bold">บันทึกแล้ว</div>
-                        <div className="text-sm font-black text-gray-900">
-                          {stats.totalDays} <span className="text-[10px] font-normal">วัน</span>
-                        </div>
-                      </div>
-                      <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
-                        <div className="text-[10px] text-slate-600 font-bold">คะแนนเฉลี่ย</div>
-                        <div className="text-sm font-black text-gray-900">
-                          {stats.averageScore} <span className="text-[10px] font-normal">/ 10</span>
-                        </div>
-                      </div>
-                      {stats.dominantMood && (
-                        <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
-                          <div className="text-[10px] text-slate-600 font-bold">อารมณ์เด่น</div>
-                          <div className="text-sm font-black text-gray-900 flex items-center gap-1.5 justify-center">
-                            {stats.dominantMood.emojiUrl ? (
-                              <img
-                                src={stats.dominantMood.emojiUrl}
-                                alt={stats.dominantMood.label}
-                                className="w-5 h-5 object-contain inline-block shrink-0"
-                              />
-                            ) : (
-                              <span>{stats.dominantMood.emoji}</span>
-                            )}
-                            <span className="text-xs hidden md:inline truncate max-w-[60px]">
-                              {stats.dominantMood.label}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
                   </div>
 
                   {/* Selected month calendar */}
@@ -1136,12 +1098,12 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                           className="rounded-lg p-3 sm:p-3.5 transition-colors relative group"
                         >
                           <div className="flex-1 min-w-0">
-                            {/* Line 1: วันที่.เดือน */}
+                            {/* Line 1: วันที่ เดือน พ.ศ. */}
                             <div
                               className="text-sm sm:text-base font-black text-stone-900 leading-tight"
                               title={dateFormatted}
                             >
-                              {d}.{m}
+                              วันที่ {d} {monthName} พ.ศ. {y + 543}
                             </div>
 
                             {/* Line 2: ข้อความที่บันทึก */}

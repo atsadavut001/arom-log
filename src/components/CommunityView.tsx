@@ -328,7 +328,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
           <button
             type="button"
             onClick={onSelectOwnProfile}
-            className="self-start sm:self-auto px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold rounded-2xl transition flex items-center gap-2 cursor-pointer shadow-2xs"
+            className="self-start sm:self-auto px-4 py-2 bg-green-50 hover:bg-green-100 text-green-900 border border-green-200 text-xs font-bold rounded-2xl transition flex items-center gap-2 cursor-pointer shadow-2xs"
           >
             <div
               className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center text-sm shadow-xs border border-white"
@@ -392,7 +392,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
             placeholder={activeTab === 'posts' ? 'ค้นหาโพสต์ ชื่อ หรือ @ID...' : 'ค้นหาชื่อ หรือ @ID เพื่อเพิ่มเพื่อน...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs pl-9 pr-3 py-2.5 rounded-2xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50 bg-gray-50/50"
+            className="w-full text-xs pl-9 pr-3 py-2.5 rounded-2xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-green-500/50 bg-gray-50/50"
           />
         </div>
       </div>
@@ -409,7 +409,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
       {activeTab === 'posts' ? (
         loadingUsers || loadingPosts ? (
           <div className="py-16 flex flex-col items-center justify-center text-gray-400 gap-2">
-            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-green-500" />
             <span className="text-xs">กำลังโหลดโพสต์...</span>
           </div>
         ) : filteredPosts.length === 0 ? (
@@ -440,7 +440,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
               return (
                 <article
                   key={`${author.userId}-${post.id}`}
-                  className="p-4 rounded-3xl border border-gray-200 bg-white hover:border-amber-300 hover:shadow-md transition-all shadow-2xs space-y-3 flex flex-col"
+                  className="space-y-3 flex flex-col pb-4 border-b border-green-100 last:border-b-0 last:pb-0"
                 >
                   {/* Post author — คลิกที่ชื่อหรือรูปเพื่อไปหน้าโปรไฟล์ */}
                   <button
@@ -450,7 +450,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                     title={`ดูโปรไฟล์ของ ${author.displayName}`}
                   >
                     <div
-                      className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-xl shadow-xs border border-white ring-1 ring-amber-200 shrink-0"
+                      className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-xl shadow-xs border border-white ring-1 ring-green-200 shrink-0"
                       style={{ backgroundColor: author.avatarBg || '#FEF3C7' }}
                     >
                       {author.photoURL ? (
@@ -472,10 +472,10 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm truncate group-hover:text-amber-800 group-hover:underline">
+                        <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm truncate group-hover:text-green-800 group-hover:underline">
                           {author.displayName}
                         </h4>
-                        <span className="text-[11px] text-amber-900/70 font-mono font-medium truncate">
+                        <span className="text-[11px] text-green-900/70 font-mono font-medium truncate">
                           {authorHandle}
                         </span>
                       </div>
@@ -487,7 +487,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
                   {/* Drawn emoji image — สี่เหลี่ยมจัตุรัส 1:1 */}
                   {post.drawing && (
-                    <div className="rounded-2xl overflow-hidden border border-gray-200 bg-amber-50/40 aspect-square w-full">
+                    <div className="rounded-2xl overflow-hidden aspect-square w-full">
                       <img
                         src={post.drawing}
                         alt="ภาพวาดอารมณ์ในโพสต์"
@@ -529,7 +529,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
         )
       ) : loadingUsers ? (
         <div className="py-16 flex flex-col items-center justify-center text-gray-400 gap-2">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-green-500" />
           <span className="text-xs">กำลังค้นหาเพื่อนในระบบ...</span>
         </div>
       ) : filteredUsers.length === 0 ? (
@@ -562,12 +562,12 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
               <div
                 key={user.userId}
                 onClick={() => navigate(`/profile/${user.userId}`)}
-                className="p-4 rounded-3xl border border-gray-200 bg-white hover:border-amber-300 hover:shadow-md transition-all flex items-center justify-between gap-3 shadow-2xs group cursor-pointer"
+                className="p-4 rounded-3xl border border-gray-200 bg-white hover:border-green-300 hover:shadow-md transition-all flex items-center justify-between gap-3 shadow-2xs group cursor-pointer"
               >
                 {/* User Info with Anonymous Emoji Avatar */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div
-                    className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center text-2xl shadow-xs border-2 border-white ring-1 ring-amber-200 shrink-0 group-hover:scale-105 transition-transform"
+                    className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center text-2xl shadow-xs border-2 border-white ring-1 ring-green-200 shrink-0 group-hover:scale-105 transition-transform"
                     style={{ backgroundColor: userBg }}
                   >
                     {user.photoURL ? (
@@ -590,16 +590,16 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm truncate group-hover:text-amber-800">
+                      <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm truncate group-hover:text-green-800">
                         {user.displayName}
                       </h4>
                       {user.streak !== undefined && user.streak > 0 && (
-                        <span className="flex items-center text-[10px] text-orange-600 font-bold shrink-0">
+                        <span className="flex items-center text-[10px] text-teal-600 font-bold shrink-0">
                           🔥{user.streak}
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-amber-900/70 font-mono font-medium block">
+                    <span className="text-[11px] text-green-900/70 font-mono font-medium block">
                       {userHandle}
                     </span>
                     {!isLegacyDefaultBio(user.bio) && user.bio && user.bio.trim() ? (
@@ -618,7 +618,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
                       isFollowing
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-amber-100 hover:bg-amber-200 text-amber-900'
+                        : 'bg-green-100 hover:bg-green-200 text-green-900'
                     }`}
                     title={isFollowing ? 'เลิกติดตาม' : 'ติดตาม'}
                   >

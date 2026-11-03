@@ -51,7 +51,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
           />
           <h3 className="text-lg font-black text-gray-900 flex items-center justify-center gap-1.5">
             <span>ติดตั้ง Arom Log บนมือถือ</span>
-            <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
+            <Sparkles className="w-4 h-4 text-green-500 fill-green-500" />
           </h3>
           <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
             สร้างทางลัดไว้บนหน้าจอหลัก เปิดใช้งานได้ทันที เต็มจอ ลื่นไหล ไม่ต้องเปิดแถบ URL บราวเซอร์
@@ -89,7 +89,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
           <button
             type="button"
             onClick={handleTriggerInstall}
-            className="w-full py-3.5 px-4 bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-2xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer transition active:scale-98"
+            className="w-full py-3.5 px-4 bg-linear-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-bold text-sm rounded-2xl shadow-lg shadow-green-500/25 flex items-center justify-center gap-2 cursor-pointer transition active:scale-98"
           >
             <Download className="w-4 h-4" />
             <span>กดติดตั้งลงเครื่องทันที</span>
@@ -98,15 +98,15 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
 
         {/* Step-by-Step Guide */}
         {activeOs === 'ios' ? (
-          <div className="bg-sky-50/70 rounded-2xl p-4 border border-sky-200/70 space-y-3">
-            <div className="flex items-center gap-2 text-sky-950 font-bold text-xs">
-              <Smartphone className="w-4 h-4 text-sky-600" />
+          <div className="bg-green-50/70 rounded-2xl p-4 border border-green-200/70 space-y-3">
+            <div className="flex items-center gap-2 text-green-950 font-bold text-xs">
+              <Smartphone className="w-4 h-4 text-green-600" />
               <span>วิธีเพิ่มไปยังหน้าจอโฮมบน iPhone (ผ่าน Safari):</span>
             </div>
 
             <ol className="text-xs text-gray-700 space-y-2.5 pl-1">
               <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-sky-200 text-sky-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-green-200 text-green-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   1
                 </span>
                 <span>
@@ -114,7 +114,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-sky-200 text-sky-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-green-200 text-green-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   2
                 </span>
                 <span>
@@ -122,7 +122,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-sky-200 text-sky-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-green-200 text-green-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   3
                 </span>
                 <span>
@@ -132,15 +132,15 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
             </ol>
           </div>
         ) : (
-          <div className="bg-amber-50/60 rounded-2xl p-4 border border-amber-200/60 space-y-3">
-            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
-              <Smartphone className="w-4 h-4 text-amber-600" />
+          <div className="bg-green-50/60 rounded-2xl p-4 border border-green-200/60 space-y-3">
+            <div className="flex items-center gap-2 text-green-900 font-bold text-xs">
+              <Smartphone className="w-4 h-4 text-green-600" />
               <span>วิธีสร้างทางลัดบน Google Chrome (Android):</span>
             </div>
 
             <ol className="text-xs text-gray-700 space-y-2.5 pl-1">
               <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-green-200 text-green-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   1
                 </span>
                 <span>
@@ -148,7 +148,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-green-200 text-green-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   2
                 </span>
                 <span>
@@ -156,7 +156,7 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-green-200 text-green-900 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                   3
                 </span>
                 <span>

@@ -24,8 +24,8 @@ export const AuthScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-amber-50/60 via-orange-50/30 to-sky-50/50 flex flex-col justify-center items-center px-3 sm:px-4 py-6 sm:py-12">
-      <div className="max-w-md w-full bg-white rounded-3xl p-5 sm:p-8 shadow-xl border border-amber-100 space-y-5 sm:space-y-6">
+    <div className="min-h-screen bg-linear-to-b from-green-50/60 via-teal-50/30 to-green-50/50 flex flex-col justify-center items-center px-3 sm:px-4 py-6 sm:py-12">
+      <div className="max-w-md w-full bg-white rounded-3xl p-5 sm:p-8 shadow-xl border border-green-100 space-y-5 sm:space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-3">
           <img
@@ -34,8 +34,8 @@ export const AuthScreen: React.FC = () => {
             className="w-16 h-16 mx-auto object-contain"
           />
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-900">
+              <Sparkles className="w-3.5 h-3.5 text-green-600" />
               Arom Log
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-2">
@@ -48,7 +48,7 @@ export const AuthScreen: React.FC = () => {
         </div>
 
         {/* Feature Highlights */}
-        <div className="space-y-2.5 bg-amber-50/40 p-4 rounded-2xl border border-amber-100 text-xs text-gray-700">
+        <div className="space-y-2.5 bg-green-50/40 p-4 rounded-2xl border border-green-100 text-xs text-gray-700">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>เข้าสู่ระบบด้วย Google บัญชีเดียว ปลอดภัยด้วย Firebase Auth</span>
@@ -83,7 +83,7 @@ export const AuthScreen: React.FC = () => {
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin text-amber-600" />
+              <Loader2 className="w-5 h-5 animate-spin text-green-600" />
               <span>กำลังเชื่อมต่อกับ Google...</span>
             </>
           ) : (

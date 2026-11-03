@@ -85,7 +85,7 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
       {/* Modal Dialog with bounded height and scrollable body */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white max-w-lg w-full max-h-[85dvh] sm:max-h-[85vh] my-auto rounded-2xl sm:rounded-3xl shadow-2xl border border-orange-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white max-w-lg w-full max-h-[85dvh] sm:max-h-[85vh] my-auto rounded-2xl sm:rounded-3xl shadow-2xl border border-teal-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
       >
         {/* Sticky Header: ALWAYS visible on all screen sizes with touch-friendly Close button */}
         <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 flex items-center justify-between bg-white z-20">
@@ -95,7 +95,7 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
               <h3 id="streak-modal-title" className="font-extrabold text-gray-900 text-sm sm:text-base leading-tight">
                 สถิติต่อเนื่อง & หีบรางวัล
               </h3>
-              <p className="text-[11px] text-orange-700">
+              <p className="text-[11px] text-teal-700">
                 Duolingo-style Streak & Rewards
               </p>
             </div>
@@ -114,7 +114,7 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
         {/* Scrollable Content Area: min-h-0 is essential to prevent flexbox mobile overflow bug */}
         <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-5 overscroll-contain">
           {/* Duolingo Flame Hero Card */}
-          <div className="bg-linear-to-br from-amber-500 via-orange-500 to-rose-500 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white text-center shadow-md relative overflow-hidden shrink-0">
+          <div className="bg-linear-to-br from-green-500 via-teal-500 to-rose-500 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 text-white text-center shadow-md relative overflow-hidden shrink-0">
             <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white/10 rounded-full filter blur-xl" />
             <div className="relative z-10 space-y-1 sm:space-y-2">
               <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/20 backdrop-blur-xs ring-3 sm:ring-4 ring-white/40 shadow-inner">
@@ -128,7 +128,7 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
                 <span className="text-sm sm:text-lg font-bold opacity-90">วันติดต่อกัน!</span>
               </div>
 
-              <p className="text-xs text-orange-100 font-medium max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-teal-100 font-medium max-w-xs mx-auto leading-relaxed">
                 {streak > 0
                   ? 'เปลวไฟแห่งความใส่ใจกำลังลุกโชน บันทึกทุกวันเพื่อไม่ให้ไฟดับ'
                   : 'บันทึกอารมณ์วันนี้เพื่อจุดประกายไฟแห่งสติวันแรก!'}
@@ -137,13 +137,13 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
           </div>
 
           {/* Weekly Flame Tracker */}
-          <div className="space-y-1.5 sm:space-y-2 bg-orange-50/70 p-3 sm:p-4 rounded-2xl border border-orange-200/80">
-            <div className="flex items-center justify-between text-xs font-bold text-orange-950">
+          <div className="space-y-1.5 sm:space-y-2 bg-teal-50/70 p-3 sm:p-4 rounded-2xl border border-teal-200/80">
+            <div className="flex items-center justify-between text-xs font-bold text-teal-950">
               <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-orange-600" />
+                <Calendar className="w-3.5 h-3.5 text-teal-600" />
                 ตารางบันทึกสัปดาห์นี้
               </span>
-              <span className="text-orange-700 font-medium text-[11px]">
+              <span className="text-teal-700 font-medium text-[11px]">
                 สถิติสูงสุด: {longestStreak} วัน
               </span>
             </div>
@@ -154,7 +154,7 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
                   key={day.dateStr}
                   className={`py-1.5 sm:py-2 px-0.5 rounded-xl text-center flex flex-col items-center justify-between gap-0.5 transition ${
                     day.isToday
-                      ? 'ring-2 ring-orange-500 bg-white shadow-2xs'
+                      ? 'ring-2 ring-teal-500 bg-white shadow-2xs'
                       : 'bg-white/80'
                   }`}
                 >
@@ -174,15 +174,15 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-bold text-gray-700">
               <span className="flex items-center gap-1">
-                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                <Zap className="w-3.5 h-3.5 text-green-500" />
                 เป้าหมายถัดไป: {nextMilestone} วัน
               </span>
-              <span className="text-amber-800">{streak} / {nextMilestone} วัน</span>
+              <span className="text-green-800">{streak} / {nextMilestone} วัน</span>
             </div>
             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
               <div
                 style={{ width: `${progressPercent}%` }}
-                className="h-full bg-linear-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-500"
+                className="h-full bg-linear-to-r from-green-400 to-teal-500 rounded-full transition-all duration-500"
               />
             </div>
           </div>
@@ -191,10 +191,10 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
           <div className="space-y-2.5 pt-1">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-gray-900 text-xs sm:text-sm flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-amber-600" />
+                <Award className="w-4 h-4 text-green-600" />
                 เหรียญรางวัลเกียรติยศ (Badges)
               </h4>
-              <span className="text-[11px] text-amber-800 font-semibold bg-amber-100 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] text-green-800 font-semibold bg-green-100 px-2 py-0.5 rounded-full">
                 ปลดล็อค {unlockedBadgeIds.length} / {STREAK_BADGES.length}
               </span>
             </div>
@@ -210,7 +210,7 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
                     onClick={() => setSelectedBadge(badge)}
                     className={`p-2.5 rounded-2xl border text-center transition flex flex-col items-center justify-between gap-1 cursor-pointer select-none touch-manipulation ${
                       isUnlocked
-                        ? 'bg-amber-50/80 border-amber-300 shadow-2xs hover:scale-105 active:scale-95'
+                        ? 'bg-green-50/80 border-green-300 shadow-2xs hover:scale-105 active:scale-95'
                         : 'bg-gray-50 border-gray-200 opacity-60 hover:opacity-80'
                     }`}
                   >
@@ -238,11 +238,11 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
 
           {/* Badge Detail Submodal when clicked */}
           {selectedBadge && (
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-1.5 animate-in fade-in">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-green-50 border border-green-200 space-y-1.5 animate-in fade-in">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{selectedBadge.icon}</span>
-                  <h5 className="font-bold text-amber-950 text-xs sm:text-sm">{selectedBadge.title}</h5>
+                  <h5 className="font-bold text-green-950 text-xs sm:text-sm">{selectedBadge.title}</h5>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                   unlockedBadgeIds.includes(selectedBadge.id)
@@ -252,7 +252,7 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
                   {unlockedBadgeIds.includes(selectedBadge.id) ? 'ปลดล็อคแล้ว ✅' : 'ยังไม่ปลดล็อค 🔒'}
                 </span>
               </div>
-              <p className="text-xs text-amber-900 leading-relaxed">{selectedBadge.description}</p>
+              <p className="text-xs text-green-900 leading-relaxed">{selectedBadge.description}</p>
             </div>
           )}
         </div>

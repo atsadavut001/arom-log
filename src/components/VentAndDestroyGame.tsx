@@ -258,8 +258,8 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className={`relative bg-[#FFFDF5] rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-md border border-amber-200/90 transition-all duration-200 select-none ${
-              isDragging ? 'opacity-80 scale-98 shadow-xl cursor-grabbing ring-2 ring-amber-400' : 'hover:shadow-lg cursor-grab'
+            className={`relative bg-[#FFFDF5] rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-md border border-green-200/90 transition-all duration-200 select-none ${
+              isDragging ? 'opacity-80 scale-98 shadow-xl cursor-grabbing ring-2 ring-green-400' : 'hover:shadow-lg cursor-grab'
             }`}
             style={{
               backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #E5E7EB 28px)',
@@ -267,11 +267,11 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
             }}
           >
             {/* Paper Washi-tape / Clip ornament at top */}
-            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-20 sm:w-24 h-5 bg-amber-200/80 backdrop-blur-xs rounded-sm shadow-xs border border-amber-300/60 rotate-[-1deg]" />
+            <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-20 sm:w-24 h-5 bg-green-200/80 backdrop-blur-xs rounded-sm shadow-xs border border-green-300/60 rotate-[-1deg]" />
 
-            <div className="flex items-center justify-between mb-2 pt-1 border-b border-amber-100 pb-1.5 text-xs text-amber-800/80">
+            <div className="flex items-center justify-between mb-2 pt-1 border-b border-green-100 pb-1.5 text-xs text-green-800/80">
               <div className="flex items-center gap-1.5 font-semibold">
-                <FileText className="w-3.5 h-3.5 text-amber-600" />
+                <FileText className="w-3.5 h-3.5 text-green-600" />
                 <span>แผ่นกระดาษระบายความในใจ</span>
               </div>
               <span className="text-[11px] text-gray-400">
@@ -284,13 +284,13 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
               value={ventText}
               onChange={(e) => setVentText(e.target.value)}
               placeholder="พิมพ์ระบายเรื่องที่คุณกำลังหงุดหงิดหรือไม่สบายใจที่นี่ได้เลย..."
-              className="w-full h-32 sm:h-36 bg-transparent text-gray-800 placeholder-gray-400 text-sm sm:text-base leading-7 resize-none outline-none font-medium selection:bg-amber-200"
+              className="w-full h-32 sm:h-36 bg-transparent text-gray-800 placeholder-gray-400 text-sm sm:text-base leading-7 resize-none outline-none font-medium selection:bg-green-200"
               style={{ lineHeight: '28px' }}
             />
 
             {/* Instruction tooltip */}
             <div className="mt-1 flex items-center justify-between text-[11px] text-gray-500">
-              <span className="italic flex items-center gap-1 text-amber-700">
+              <span className="italic flex items-center gap-1 text-green-700">
                 ✨ ลากแผ่นกระดาษนี้เข้าเครื่องบด หรือเตาไฟด้านล่าง
               </span>
               {ventText.length > 0 && (
@@ -373,17 +373,17 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
               onClick={startBurning}
               className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer text-left flex flex-col justify-between group active:scale-98 ${
                 dragOverTarget === 'fire'
-                  ? 'border-orange-500 bg-orange-50/90 ring-4 ring-orange-200 scale-102 shadow-lg'
-                  : 'border-amber-200 bg-amber-50/70 hover:bg-orange-50/60 hover:border-orange-300 shadow-xs'
+                  ? 'border-teal-500 bg-teal-50/90 ring-4 ring-teal-200 scale-102 shadow-lg'
+                  : 'border-green-200 bg-green-50/70 hover:bg-teal-50/60 hover:border-teal-300 shadow-xs'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition">
+                  <div className="w-9 h-9 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition">
                     🔥
                   </div>
                   <div>
-                    <h5 className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-orange-900 transition">
+                    <h5 className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-teal-900 transition">
                       จุดไฟเผาเป็นขี้เถ้า
                     </h5>
                     <p className="text-[10px] text-gray-500">
@@ -391,17 +391,17 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-orange-600 transition" />
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-teal-600 transition" />
               </div>
 
               {/* Flame visual slot simulation */}
-              <div className="w-full bg-orange-200 h-2 rounded-full overflow-hidden border border-orange-300/80 mb-2">
-                <div className="w-full h-full bg-linear-to-r from-amber-400 via-orange-500 to-red-500 animate-pulse" />
+              <div className="w-full bg-teal-200 h-2 rounded-full overflow-hidden border border-teal-300/80 mb-2">
+                <div className="w-full h-full bg-linear-to-r from-green-400 via-teal-500 to-red-500 animate-pulse" />
               </div>
 
               <button
                 type="button"
-                className="w-full py-1.5 px-2 bg-linear-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-1.5 px-2 bg-linear-to-r from-teal-500 to-green-600 hover:from-teal-600 hover:to-green-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Flame className="w-3.5 h-3.5" />
                 <span>จุดไฟเผาทันที</span>
@@ -447,7 +447,7 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
                   opacity: Math.max(0, 1 - shredProgress / 100),
                 }}
               >
-                <div className="font-bold text-amber-800 border-b border-amber-200 pb-1 mb-1">
+                <div className="font-bold text-green-800 border-b border-green-200 pb-1 mb-1">
                   📄 ข้อความที่กำลังถูกทำลาย:
                 </div>
                 <div className="line-clamp-3 text-gray-600">
@@ -462,7 +462,7 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
                 {shredStrips.map((strip) => (
                   <div
                     key={strip.id}
-                    className="h-full bg-[#FFFDF5] border-x border-amber-200/90 shadow-sm transition-all duration-300"
+                    className="h-full bg-[#FFFDF5] border-x border-green-200/90 shadow-sm transition-all duration-300"
                     style={{
                       width: `${strip.widthPercent - 1}%`,
                       transform: `translateY(${Math.max(0, shredProgress - 20) * 1.3}%) rotate(${strip.rotation}deg)`,
@@ -473,7 +473,7 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
               </div>
 
               {/* Shredder blade indicator */}
-              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-indigo-500 via-sky-400 to-indigo-500" />
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-indigo-500 via-green-400 to-indigo-500" />
             </div>
 
             {/* Progress bar */}
@@ -497,16 +497,16 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
       {step === 'burning' && (
         <div className="py-4 space-y-4 text-center">
           <div className="flex items-center justify-center gap-2">
-            <Flame className="w-6 h-6 text-orange-500 animate-bounce" />
-            <h4 className="font-extrabold text-base sm:text-lg text-orange-950">
+            <Flame className="w-6 h-6 text-teal-500 animate-bounce" />
+            <h4 className="font-extrabold text-base sm:text-lg text-teal-950">
               กำลังเผาทำลายและปล่อยให้ปลิวหายไปกับสายลม...
             </h4>
           </div>
 
           {/* Burning Container */}
-          <div className="relative max-w-xs mx-auto h-64 bg-slate-950 rounded-3xl p-4 text-white shadow-2xl border-4 border-amber-600/40 overflow-hidden flex flex-col justify-end">
+          <div className="relative max-w-xs mx-auto h-64 bg-slate-950 rounded-3xl p-4 text-white shadow-2xl border-4 border-green-600/40 overflow-hidden flex flex-col justify-end">
             {/* Wind and ember swirl background */}
-            <div className="absolute inset-0 bg-radial from-orange-950/40 via-transparent to-black pointer-events-none" />
+            <div className="absolute inset-0 bg-radial from-teal-950/40 via-transparent to-black pointer-events-none" />
 
             {/* Ash particles flying away with wind */}
             {burnProgress > 30 && (
@@ -536,13 +536,13 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
             {/* The paper dissolving into ashes */}
             <div className="relative mx-auto w-4/5 rounded-xl overflow-hidden p-3 transition-all duration-300">
               <div
-                className="bg-[#FFFDF5] rounded-lg p-3 text-gray-800 text-xs shadow-md border border-amber-300 relative transition-all duration-300"
+                className="bg-[#FFFDF5] rounded-lg p-3 text-gray-800 text-xs shadow-md border border-green-300 relative transition-all duration-300"
                 style={{
                   clipPath: `inset(0% 0% ${burnProgress}% 0%)`,
                   filter: `brightness(${Math.max(0.2, 1 - burnProgress / 90)}) contrast(${1 + burnProgress / 50})`,
                 }}
               >
-                <div className="font-bold text-amber-900 border-b border-amber-200 pb-1 mb-1">
+                <div className="font-bold text-green-900 border-b border-green-200 pb-1 mb-1">
                   🔥 กำลังเผาไหม้...
                 </div>
                 <div className="line-clamp-2 text-gray-600">
@@ -553,7 +553,7 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
               {/* Burning Edge Glowing Embers */}
               {burnProgress < 95 && (
                 <div
-                  className="absolute left-3 right-3 h-5 pointer-events-none bg-linear-to-t from-transparent via-orange-500 to-amber-300 opacity-90 blur-xs transition-all duration-100"
+                  className="absolute left-3 right-3 h-5 pointer-events-none bg-linear-to-t from-transparent via-teal-500 to-green-300 opacity-90 blur-xs transition-all duration-100"
                   style={{
                     bottom: `${burnProgress}%`,
                   }}
@@ -564,7 +564,7 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
             {/* Brazier fire at bottom */}
             <div className="relative mt-2 text-center">
               <div className="text-3xl animate-pulse">🔥</div>
-              <div className="text-[11px] text-amber-300 font-bold mt-1">
+              <div className="text-[11px] text-green-300 font-bold mt-1">
                 ขี้เถ้ากำลังปลิวหายไปกับสายลม ({burnProgress}%)
               </div>
             </div>
@@ -639,7 +639,7 @@ export const VentAndDestroyGame: React.FC<VentAndDestroyGameProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              className="w-full sm:w-auto flex-1 py-2.5 px-4 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full sm:w-auto flex-1 py-2.5 px-4 rounded-2xl bg-green-50 hover:bg-green-100 text-green-900 border border-green-200 text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>เขียนระบายอีกเรื่อง</span>

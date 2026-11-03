@@ -30,7 +30,7 @@ export const MoodIcon: React.FC<MoodIconProps> = ({
       <img
         src={customDrawing}
         alt={alt || 'วาดหน้าตาเอง'}
-        className={`rounded-full border border-amber-300 bg-white object-cover shadow-2xs ${className} ${imgClassName}`}
+        className={`rounded-full border border-green-300 bg-white object-cover shadow-2xs ${className} ${imgClassName}`}
         loading="lazy"
       />
     );
