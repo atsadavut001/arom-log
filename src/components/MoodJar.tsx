@@ -134,6 +134,11 @@ export const MoodJar: React.FC<MoodJarProps> = ({
   // Filter entries for the selected month
   const monthEntries = entries.filter((e) => e.date.startsWith(selectedMonth));
 
+  // Signature of the month's entries (id can be missing on older data, so fall back to date + mood)
+  const monthEntriesKey = monthEntries
+    .map((e) => e.id || `${e.date}:${e.moodType}`)
+    .join('|');
+
   // Count by mood type
   const moodCounts = monthEntries.reduce((acc, curr) => {
     acc[curr.moodType] = (acc[curr.moodType] || 0) + 1;
@@ -165,6 +170,7 @@ export const MoodJar: React.FC<MoodJarProps> = ({
   };
 
   // Initialize or re-create Matter.js physics simulation
+  // (rebuilds whenever the month changes or that month's entries change)
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
 
@@ -418,7 +424,7 @@ export const MoodJar: React.FC<MoodJarProps> = ({
       Composite.clear(engine.world, false);
       Engine.clear(engine);
     };
-  }, [selectedMonth, monthEntries.length]);
+  }, [selectedMonth, monthEntriesKey]);
 
   return (
     <div className="bg-white rounded-3xl p-5 md:p-8 shadow-sm border border-gray-100 max-w-4xl mx-auto">

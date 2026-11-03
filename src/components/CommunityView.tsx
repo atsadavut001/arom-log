@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   setDoc,
   deleteDoc,
   onSnapshot,
   query,
-  where
+  where,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  increment
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
-import { UserProfile, isLegacyDefaultBio, getAvatarEmojiImage } from '../types.ts';
+import { UserProfile, SocialPost, isLegacyDefaultBio, getAvatarEmojiImage } from '../types.ts';
 import { UserProfileView } from './UserProfileView.tsx';
 import {
   Users,
@@ -49,9 +54,14 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'following'>('all');
+  const [activeTab, setActiveTab] = useState<'posts' | 'following'>('posts');
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  // โปรไฟล์ของคนที่เราติดตามแต่ไม่เป็นสาธารณะ (ไม่ติดใน usersList)
+  const [followedProfiles, setFollowedProfiles] = useState<UserProfile[]>([]);
+  // โพสต์ที่เห็นได้ = โปรไฟล์สาธารณะทั้งหมด + คนที่เราติดตาม (แม้จะไม่เป็นสาธารณะ)
+  const [communityPosts, setCommunityPosts] = useState<(SocialPost & { author: UserProfile })[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
 
   // 1. Fetch community users
   useEffect(() => {
@@ -99,6 +109,84 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
     fetchUsers();
   }, [currentUser.uid]);
 
+  // 1a. Load profiles of followed users that are not public (so their posts can be shown)
+  useEffect(() => {
+    const missingIds = followingIds.filter(
+      (id) => id !== currentUser.uid && !usersList.some((u) => u.userId === id)
+    );
+
+    if (missingIds.length === 0) {
+      setFollowedProfiles((prev) => (prev.length === 0 ? prev : []));
+      return;
+    }
+
+    let cancelled = false;
+    const fetchFollowedProfiles = async () => {
+      const fetched: UserProfile[] = [];
+      await Promise.all(
+        missingIds.map(async (id) => {
+          try {
+            const snap = await getDoc(doc(db, 'users', id));
+            if (snap.exists()) fetched.push(snap.data() as UserProfile);
+          } catch (err) {
+            console.warn('Could not read followed profile', id, err);
+          }
+        })
+      );
+      if (!cancelled) setFollowedProfiles(fetched);
+    };
+
+    fetchFollowedProfiles();
+    return () => {
+      cancelled = true;
+    };
+  }, [followingIds, usersList, currentUser.uid]);
+
+  // Author pool for the feed: ทุกคนที่เป็นสาธารณะ + คนที่เราติดตาม (dedupe by userId)
+  const feedAuthors = useMemo(() => {
+    const map = new Map<string, UserProfile>();
+    [...usersList, ...followedProfiles].forEach((author) => {
+      if (author.userId && author.userId !== currentUser.uid) {
+        map.set(author.userId, author);
+      }
+    });
+    return Array.from(map.values());
+  }, [usersList, followedProfiles, currentUser.uid]);
+
+  // 1b. Fetch posts of every visible author (/users/{uid}/posts) for the community feed
+  useEffect(() => {
+    if (loadingUsers) return;
+
+    let cancelled = false;
+    const fetchAllPosts = async () => {
+      setLoadingPosts(true);
+      const collected: (SocialPost & { author: UserProfile })[] = [];
+
+      await Promise.all(
+        feedAuthors.map(async (author) => {
+          try {
+            const snapshot = await getDocs(collection(db, 'users', author.userId, 'posts'));
+            snapshot.forEach((docSnap) => {
+              collected.push({ ...(docSnap.data() as SocialPost), author });
+            });
+          } catch (err) {
+            console.warn('Could not read posts of', author.userId, err);
+          }
+        })
+      );
+
+      if (cancelled) return;
+      collected.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      setCommunityPosts(collected);
+      setLoadingPosts(false);
+    };
+
+    fetchAllPosts();
+    return () => {
+      cancelled = true;
+    };
+  }, [feedAuthors, loadingUsers]);
+
   // 2. Fetch current user's followed list
   useEffect(() => {
     const followingColRef = collection(db, 'users', currentUser.uid, 'following');
@@ -134,6 +222,63 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
     } catch (err) {
       console.error('Failed to toggle follow:', err);
     }
+  };
+
+  // Toggle heart on a community post (optimistic update, then persist)
+  const handleTogglePostLike = async (post: SocialPost & { author: UserProfile }) => {
+    const isLiked = (post.likes || []).includes(currentUser.uid);
+    const postDocRef = doc(db, 'users', post.author.userId, 'posts', post.id);
+
+    setCommunityPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== post.id || p.author.userId !== post.author.userId) return p;
+        const currentLikes = p.likes || [];
+        const nextLikes = isLiked
+          ? currentLikes.filter((uid) => uid !== currentUser.uid)
+          : [...currentLikes, currentUser.uid];
+        return { ...p, likes: nextLikes, likesCount: nextLikes.length };
+      })
+    );
+
+    try {
+      if (isLiked) {
+        await updateDoc(postDocRef, {
+          likes: arrayRemove(currentUser.uid),
+          likesCount: increment(-1),
+        });
+      } else {
+        await updateDoc(postDocRef, {
+          likes: arrayUnion(currentUser.uid),
+          likesCount: increment(1),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to toggle post heart:', err);
+    }
+  };
+
+  // Filter public posts by search query (author name, @handle or post text)
+  const filteredPosts = communityPosts.filter((post) => {
+    const q = searchQuery.toLowerCase().trim().replace(/^@/, '');
+    if (!q) return true;
+    const author = post.author;
+    const authorHandle = (author.handle || '').toLowerCase().replace(/^@/, '');
+    return (
+      (author.displayName || '').toLowerCase().includes(q) ||
+      authorHandle.includes(q) ||
+      (post.text || '').toLowerCase().includes(q)
+    );
+  });
+
+  const formatTimestampThai = (iso: string) => {
+    const datePart = (iso || '').substring(0, 10);
+    if (!datePart) return '';
+    const [y, m, d] = datePart.split('-').map(Number);
+    const thaiMonthsShort = [
+      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ];
+    return `${d} ${thaiMonthsShort[m - 1]} ${y + 543}`;
   };
 
   // Filter users list by search query (both name and @ID handle) and tabs
@@ -217,14 +362,14 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
         <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200 self-start sm:self-auto">
           <button
             type="button"
-            onClick={() => setActiveTab('all')}
+            onClick={() => setActiveTab('posts')}
             className={`px-4 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-              activeTab === 'all'
+              activeTab === 'posts'
                 ? 'bg-white text-gray-900 shadow-xs'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            เพื่อนทั้งหมด ({usersList.length})
+            โพสต์ ({communityPosts.length})
           </button>
           <button
             type="button"
@@ -244,7 +389,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="ค้นหาชื่อ หรือ @ID เพื่อเพิ่มเพื่อน..."
+            placeholder={activeTab === 'posts' ? 'ค้นหาโพสต์ ชื่อ หรือ @ID...' : 'ค้นหาชื่อ หรือ @ID เพื่อเพิ่มเพื่อน...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full text-xs pl-9 pr-3 py-2.5 rounded-2xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50 bg-gray-50/50"
@@ -260,8 +405,129 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
         </div>
       )}
 
-      {/* Users Grid */}
-      {loadingUsers ? (
+      {/* TAB 1: โพสต์ทั้งหมดของผู้ใช้ที่เป็นสาธารณะ */}
+      {activeTab === 'posts' ? (
+        loadingUsers || loadingPosts ? (
+          <div className="py-16 flex flex-col items-center justify-center text-gray-400 gap-2">
+            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+            <span className="text-xs">กำลังโหลดโพสต์...</span>
+          </div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="text-center py-16 bg-gray-50/80 rounded-3xl border border-gray-200 text-xs text-gray-500 space-y-2">
+            <Heart className="w-10 h-10 text-gray-300 mx-auto" />
+            <p className="font-bold text-sm text-gray-700">
+              {searchQuery
+                ? `ไม่พบโพสต์ที่ตรงกับ "${searchQuery}"`
+                : 'ยังไม่มีโพสต์จากผู้ใช้ที่เปิดโปรไฟล์สาธารณะ'}
+            </p>
+            <p className="text-[11px] max-w-xs mx-auto">
+              {searchQuery
+                ? 'ลองค้นหาด้วยชื่อ @ID หรือข้อความในโพสต์อื่น'
+                : 'เมื่อเพื่อนที่เปิดโปรไฟล์สาธารณะโพสต์ จะแสดงโพสต์ทั้งหมดที่นี่'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+            {/* Web: 3 คอลัมน์ (แท็บเล็ต 2 / มือถือ 1) • รูปโพสต์เป็น 1:1 */}
+            {filteredPosts.map((post) => {
+              const author = post.author;
+              const authorHandle = author.handle
+                ? `@${author.handle.replace(/^@/, '')}`
+                : `@${author.userId.substring(0, 8)}`;
+              const likesCount = post.likesCount || (post.likes || []).length || 0;
+              const isLikedByMe = (post.likes || []).includes(currentUser.uid);
+
+              return (
+                <article
+                  key={`${author.userId}-${post.id}`}
+                  className="p-4 rounded-3xl border border-gray-200 bg-white hover:border-amber-300 hover:shadow-md transition-all shadow-2xs space-y-3 flex flex-col"
+                >
+                  {/* Post author — คลิกที่ชื่อหรือรูปเพื่อไปหน้าโปรไฟล์ */}
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/profile/${author.userId}`)}
+                    className="flex items-center gap-3 w-full text-left cursor-pointer group"
+                    title={`ดูโปรไฟล์ของ ${author.displayName}`}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center text-xl shadow-xs border border-white ring-1 ring-amber-200 shrink-0"
+                      style={{ backgroundColor: author.avatarBg || '#FEF3C7' }}
+                    >
+                      {author.photoURL ? (
+                        <img
+                          src={author.photoURL}
+                          alt={`รูปโปรไฟล์ของ ${author.displayName}`}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : getAvatarEmojiImage(author.avatarEmoji) ? (
+                        <img
+                          src={getAvatarEmojiImage(author.avatarEmoji)!}
+                          alt={`รูปโปรไฟล์ของ ${author.displayName}`}
+                          className="w-full h-full object-contain p-1 select-none"
+                          draggable={false}
+                        />
+                      ) : (
+                        <span className="select-none">{author.avatarEmoji || '😊'}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm truncate group-hover:text-amber-800 group-hover:underline">
+                          {author.displayName}
+                        </h4>
+                        <span className="text-[11px] text-amber-900/70 font-mono font-medium truncate">
+                          {authorHandle}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-gray-400 block">
+                        {formatTimestampThai(post.createdAt)}
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Drawn emoji image — สี่เหลี่ยมจัตุรัส 1:1 */}
+                  {post.drawing && (
+                    <div className="rounded-2xl overflow-hidden border border-gray-200 bg-amber-50/40 aspect-square w-full">
+                      <img
+                        src={post.drawing}
+                        alt="ภาพวาดอารมณ์ในโพสต์"
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+
+                  {/* Post text */}
+                  {post.text && (
+                    <p className="text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                      {post.text}
+                    </p>
+                  )}
+
+                  {/* Likes — กดหัวใจได้เลยจากฟีด ไม่ต้องเข้าหน้าโปรไฟล์ */}
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePostLike(post)}
+                    className={`mt-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer active:scale-95 self-start border ${
+                      isLikedByMe
+                        ? 'bg-rose-50 text-rose-600 border-rose-200'
+                        : 'bg-gray-50 text-gray-600 hover:bg-rose-50/60 hover:text-rose-600 border-gray-200'
+                    }`}
+                    title="กดหัวใจให้กำลังใจ"
+                  >
+                    <Heart
+                      className={`w-3.5 h-3.5 ${
+                        isLikedByMe ? 'fill-rose-500 text-rose-500' : 'text-gray-400'
+                      }`}
+                    />
+                    <span>{likesCount} ใจ</span>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )
+      ) : loadingUsers ? (
         <div className="py-16 flex flex-col items-center justify-center text-gray-400 gap-2">
           <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
           <span className="text-xs">กำลังค้นหาเพื่อนในระบบ...</span>

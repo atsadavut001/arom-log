@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MoodEntry, UserProfile, MOOD_PRESETS, getAvatarEmojiImage } from '../types.ts';
 import { MoodIcon } from './MoodIcon.tsx';
@@ -7,7 +7,6 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   Sparkles,
   Clock,
   Bookmark,
@@ -62,7 +61,7 @@ const THAI_MONTHS_SHORT = [
 
 const THAI_DAYS_MINI = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
-const ENTRIES_PER_PAGE = 3;
+const ENTRIES_PER_PAGE = 5;
 const COVER_COLOR_PRESETS = [
   { name: 'ชมพูพาสเทล', color: '#FCE7F3' },
   { name: 'ฟ้ามิ้นต์', color: '#E0F2FE' },
@@ -168,8 +167,28 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
   const totalPages = Math.max(1, 1 + entryPages.length);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Reset page when the selected month changes.
+  // Typed date on the calendar page + pending jump for dates in another month
+  const [dateInput, setDateInput] = useState<string>('');
+  const pendingDateJumpRef = useRef<string | null>(null);
+  const entriesRef = useRef<MoodEntry[]>(entries);
+  entriesRef.current = entries;
+
+  // Reset page when the selected month changes (or open the page of a pending typed date).
   useEffect(() => {
+    const pendingDate = pendingDateJumpRef.current;
+    if (pendingDate) {
+      pendingDateJumpRef.current = null;
+      const [pendingYear, pendingMonth] = pendingDate.split('-');
+      const monthEntries = entriesRef.current
+        .filter((e) => e.date.startsWith(`${pendingYear}-${pendingMonth}-`))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const pendingIndex = monthEntries.findIndex((e) => e.date === pendingDate);
+      if (pendingIndex !== -1) {
+        setDirection(1);
+        setCurrentPage(Math.floor(pendingIndex / ENTRIES_PER_PAGE) + 2);
+        return;
+      }
+    }
     setCurrentPage(1);
     setDirection(1);
   }, [selectedYear, selectedMonth]);
@@ -421,6 +440,24 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
     }
   };
 
+  // Go to a typed date: open its page, or the daily editor when that day has no entry yet.
+  const handleDateInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dateInput) return;
+    const [targetYear, targetMonth] = dateInput.split('-').map((part) => parseInt(part, 10));
+    if (!targetYear || !targetMonth) return;
+
+    if (targetYear === selectedYear && targetMonth === selectedMonth) {
+      jumpToDatePage(dateInput);
+      return;
+    }
+
+    // Another month: switch the calendar first, then jump once the new month is rendered
+    pendingDateJumpRef.current = dateInput;
+    setSelectedYear(targetYear);
+    setSelectedMonth(targetMonth);
+  };
+
   // Stats calculation for Page 1
   const stats = useMemo(() => {
     const totalRecorded = yearEntries.length;
@@ -480,18 +517,15 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4">
-      {/* Top Toolbar: Year Switcher & Book Status */}
-      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/90 backdrop-blur-sm p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-slate-500/10 border border-slate-300 flex items-center justify-center text-slate-600 shadow-2xs">
-            <BookOpen className="w-5 h-5" />
-          </div>
+      {/* Top Toolbar: Month/Year Title, Book Status & Controls */}
+      <div className="no-print flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-3 bg-white/90 backdrop-blur-sm p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+        {/* Month journal title: full-width row at the top, always a single line */}
+        <h3 className="w-full basis-full pb-2 mb-0.5 border-b border-slate-100 font-extrabold text-gray-900 text-[13px] sm:text-base whitespace-nowrap truncate">
+          Journal รายเดือน — {monthName} พ.ศ. {thaiBuddhistYear}
+        </h3>
+        <div className="flex items-center justify-center gap-3">
           <div>
-            <h3 className="font-extrabold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-              Journal รายเดือน — {monthName} พ.ศ. {thaiBuddhistYear}
-            </h3>
-            <p className="text-xs text-gray-500">
-              {isOpen ? `กำลังเปิดอ่านหน้า ${currentPage} / ${totalPages}` : 'สมุดปิดอยู่ • คลิกที่หน้าปกเพื่อเปิดอ่าน'}
+            <p className="text-xs text-gray-500 text-center">
               {isDecorating && (
                 <span className="ml-2 font-bold text-slate-600 bg-slate-100/90 border border-slate-300 px-2 py-0.5 rounded-md text-[11px]">
                   🎨 โหมดตกแต่ง Scrapbook เปิดอยู่
@@ -502,7 +536,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
         </div>
 
         {/* Toolbar Action Buttons: Scrapbook, Print, Month/Year Selector & Open/Close */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
           {/* Scrapbook Decorate Toggle (Own profile only) */}
           {isOwnProfile && isOpen && (
             <div className="flex items-center gap-1.5">
@@ -942,7 +976,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                           </button>
                         </div>
                         <h2 className="text-lg sm:text-2xl font-black text-slate-800 mt-1">
-                          Journal ประจำเดือน{monthName} พ.ศ. {thaiBuddhistYear}
+                          เดือน {monthName} พ.ศ. {thaiBuddhistYear}
                         </h2>
                         <p className="text-xs text-stone-500">
                           ของ {userProfile.displayName} ({userProfile.handle ? `@${userProfile.handle.replace(/^@/, '')}` : `@${userProfile.userId.slice(0, 6)}`})
@@ -1001,15 +1035,13 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                       {Array.from({ length: daysInSelectedMonth }, (_, index) => index + 1).map((day) => {
                         const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                         const entry = entriesByDate.get(dateStr);
-                        const preset = entry && MOOD_PRESETS.find((p) => p.type === entry.moodType);
                         return (
                           <button
                             key={dateStr}
                             type="button"
                             onClick={(event) => { event.stopPropagation(); jumpToDatePage(dateStr); }}
                             data-no-page-turn="true"
-                            className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-0.5 transition hover:scale-105 cursor-pointer ${entry ? 'text-white shadow-sm' : 'bg-white/80 text-stone-500 hover:bg-rose-50 border border-rose-100'}`}
-                            style={entry ? { backgroundColor: preset?.color || entry.moodColor || '#F59E0B' } : undefined}
+                            className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-0.5 border-0 bg-transparent shadow-none outline-none focus:outline-none focus-visible:outline-none appearance-none transition hover:scale-105 cursor-pointer ${entry ? 'text-stone-800' : 'text-stone-400 hover:text-stone-600'}`}
                             title={entry ? `${day} ${monthNameShort}: ${entry.moodLabel} — ${entry.note || ''}` : `เพิ่มบันทึกวันที่ ${day} ${monthNameShort}`}
                           >
                             <span className="text-xs sm:text-sm font-bold">{day}</span>
@@ -1018,34 +1050,6 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         );
                       })}
                     </div>
-                    <p className="text-center text-[10px] text-stone-500 mt-3">แตะวันที่มีบันทึกเพื่อเปิดอ่าน หรือวันที่ว่างเพื่อเพิ่มบันทึก</p>
-                  </div>
-
-                  {/* Legend & Hint */}
-                  <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between text-[11px] text-stone-600 gap-2">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="font-bold text-slate-800">คำอธิบายสี:</span>
-                      {MOOD_PRESETS.slice(0, 5).map((preset) => (
-                        <span key={preset.type} className="inline-flex items-center gap-1">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full inline-block"
-                            style={{ backgroundColor: preset.color }}
-                          />
-                          {preset.emojiUrl ? (
-                            <img
-                              src={preset.emojiUrl}
-                              alt={preset.label}
-                              className="w-3.5 h-3.5 object-contain inline-block shrink-0"
-                            />
-                          ) : (
-                            <span>{preset.emoji}</span>
-                          )}
-                          <span>{preset.label}</span>
-                        </span>
-                      ))}
-                    </div>                      <span className="text-[10px] text-slate-600 font-medium italic">
-                      คลิกวันที่เพื่อเปิดหรือเพิ่มบันทึกของวันนั้น
-                    </span>
                   </div>
                 </div>
               ) : (
@@ -1116,8 +1120,8 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                     </div>
                   </div>
 
-                  {/* Entry Cards List for this Page (Fixed count: 3 entries per page) */}
-                  <div className="space-y-3.5 flex-1">
+                  {/* Entry Cards List for this Page (Fixed count: 5 entries per page) */}
+                  <div className="space-y-2.5 flex-1">
                     {entryPages[currentPage - 2]?.map((entry) => {
                       const [y, m, d] = entry.date.split('-').map(Number);
                       const monthName = THAI_MONTHS[m - 1] || '';
@@ -1129,59 +1133,47 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                         <div
                           key={entry.id || entry.date}
                           data-no-page-turn="true"
-                          className="bg-white rounded-lg p-3.5 sm:p-4 border border-slate-200 transition-colors flex flex-col sm:flex-row gap-3 sm:gap-4 items-start relative group"
+                          className="rounded-lg p-3 sm:p-3.5 transition-colors relative group"
                         >
-                          {/* Mobile: mood emoji with date and feeling alongside. Desktop: details remain in the main column. */}
-                          <div className="flex items-center gap-3 shrink-0 sm:w-20 sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:text-center">
-                            <MoodIcon
-                              moodType={entry.moodType}
-                              customDrawing={entry.customDrawing}
-                              className="w-16 h-16 sm:w-20 sm:h-20"
-                              imgClassName="!rounded-none !border-0 !bg-transparent !shadow-none"
-                              alt={entry.moodLabel}
-                            />
-                            <span className="sm:hidden min-w-0 text-xs font-bold text-stone-700 leading-relaxed">
-                              <span className="block">ในวันที่ {dateFormatted}</span>
-                              <span className="block">คุณรู้สึก {entry.moodLabel}</span>
-                            </span>
-                          </div>
-
-                          {/* Center / Body: Note, Tags & Images */}
-                          <div className="flex-1 min-w-0 space-y-2">
-                            <div className="hidden sm:flex items-center justify-between gap-2">
-                              <span className="text-xs font-bold text-stone-700 flex flex-col sm:flex-row sm:items-center gap-y-1 sm:gap-x-1.5">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <CalendarIcon className="w-3.5 h-3.5 text-slate-700 shrink-0" />
-                                  <span>ในวันที่ {dateFormatted}</span>
-                                </span>
-                                <span className="pl-5 sm:pl-0">คุณรู้สึก {entry.moodLabel}</span>
-                              </span>
+                          <div className="flex-1 min-w-0">
+                            {/* Line 1: วันที่.เดือน */}
+                            <div
+                              className="text-sm sm:text-base font-black text-stone-900 leading-tight"
+                              title={dateFormatted}
+                            >
+                              {d}.{m}
                             </div>
 
-                            {/* Note / Text */}
+                            {/* Line 2: ข้อความที่บันทึก */}
                             {entry.note ? (
-                              <p className="text-xs sm:text-[13px] text-gray-800 leading-relaxed font-sans bg-slate-50/40 p-2.5 rounded-xl border border-slate-100/80 whitespace-pre-wrap">
+                              <p className="mt-1 text-xs sm:text-[13px] text-gray-800 leading-relaxed font-sans whitespace-pre-wrap">
                                 {entry.note}
                               </p>
                             ) : (
-                              <p className="text-xs text-stone-400 italic">
+                              <p className="mt-1 text-xs text-stone-400 italic">
                                 ไม่ได้เขียนบันทึกข้อความสำหรับวันนี้
                               </p>
                             )}
 
-                            {/* Tags */}
-                            {entry.tags && entry.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 pt-1">
-                                {entry.tags.map((tag) => (
-                                  <span
-                                    key={tag}
-                                    className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-stone-100 text-stone-700 border border-stone-200"
-                                  >
-                                    {tag.startsWith('#') ? tag : `#${tag}`}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                            {/* Line 3: emoji + คำอธิบายอารมณ์ + #แท็ก */}
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                              <MoodIcon
+                                moodType={entry.moodType}
+                                customDrawing={entry.customDrawing}
+                                className="w-5 h-5"
+                                imgClassName="!rounded-none !border-0 !bg-transparent !shadow-none"
+                                alt={entry.moodLabel}
+                              />
+                              <span className="text-xs font-bold text-stone-700">{entry.moodLabel}</span>
+                              {entry.tags && entry.tags.length > 0 && entry.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-stone-100 text-stone-700"
+                                >
+                                  {tag.startsWith('#') ? tag : `#${tag}`}
+                                </span>
+                              ))}
+                            </div>
 
                             {/* Custom Drawing or Photo Thumbnail if exists */}
                             {(entry.customDrawing || entry.photoUrl) && (
@@ -1273,7 +1265,7 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
           {/* Page Indicator & Click Hints */}
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full bg-white/90 border border-slate-300 shadow-2xs font-mono text-xs">
-              {currentPage === 1 ? `ปฏิทินเดือน${monthName}` : `หน้า ${currentPage} / ${totalPages}`}
+              หน้า {currentPage} / {totalPages}
             </span>
             {isDecorating ? (
               <span className="text-[10px] sm:text-xs text-slate-700 font-bold flex items-center gap-1 bg-slate-200/80 px-2.5 py-1 rounded-full border border-slate-400/60 shadow-2xs">
@@ -1281,7 +1273,6 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
               </span>
             ) : (
               <span className="text-[10px] text-slate-700/60 hidden sm:inline font-medium">
-                (👈 แตะฝั่งซ้าย: ย้อนกลับ • แตะฝั่งขวา: ถัดไป 👉)
               </span>
             )}
           </div>
@@ -1459,12 +1450,10 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                 {Array.from({ length: daysInSelectedMonth }, (_, index) => index + 1).map((day) => {
                   const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const entry = entriesByDate.get(dateStr);
-                  const preset = entry && MOOD_PRESETS.find((p) => p.type === entry.moodType);
                   return (
                     <div
                       key={day}
-                      className={`h-10 rounded-lg text-xs flex items-center justify-center font-bold ${entry ? 'text-white' : 'bg-white text-stone-400 border border-stone-100'}`}
-                      style={entry ? { backgroundColor: preset?.color || entry.moodColor || '#F59E0B' } : undefined}
+                      className={`h-10 rounded-lg text-xs flex items-center justify-center font-bold ${entry ? 'text-stone-800' : 'text-stone-400'}`}
                       title={entry ? `${dateStr}: ${entry.moodLabel}` : undefined}
                     >
                       {day}

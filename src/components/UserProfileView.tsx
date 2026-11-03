@@ -856,7 +856,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               )}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {/* Web: 3 คอลัมน์ (แท็บเล็ต 2 / มือถือ 1) • รูปโพสต์เป็น 1:1 */}
               {posts.map((post) => {
                 const isLikedByMe = (post.likes || []).includes(currentUser.uid);
                 const likesCount = post.likesCount || (post.likes || []).length || 0;
@@ -864,7 +865,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 return (
                   <div
                     key={post.id}
-                    className="bg-white rounded-3xl p-5 sm:p-6 border border-gray-100 shadow-2xs hover:shadow-sm transition space-y-4"
+                    className="bg-white rounded-3xl p-4 border border-gray-100 shadow-2xs hover:shadow-sm transition space-y-3 flex flex-col"
                   >
                     {/* Post Card Header */}
                     <div className="flex items-center justify-between">
@@ -902,13 +903,13 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       )}
                     </div>
 
-                    {/* Drawn emoji image (จาก Canvas) */}
+                    {/* Drawn emoji image (จาก Canvas) — สี่เหลี่ยมจัตุรัส 1:1 */}
                     {post.drawing && (
-                      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-amber-50/40 flex justify-center">
+                      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-amber-50/40 aspect-square w-full">
                         <img
                           src={post.drawing}
                           alt="post emoji"
-                          className="w-auto max-h-72 object-contain"
+                          className="w-full h-full object-contain"
                         />
                       </div>
                     )}
@@ -921,7 +922,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     )}
 
                     {/* Footer: heart like button */}
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <div className="mt-auto pt-2 border-t border-gray-100 flex items-center justify-between">
                       <button
                         type="button"
                         onClick={() => handleTogglePostLike(post)}
