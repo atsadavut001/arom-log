@@ -186,12 +186,13 @@ export const MoodJar: React.FC<MoodJarProps> = ({
       Events,
     } = Matter;
 
-    // Clean up previous instance
+    // Clean up previous instance (ห้ามลบ <canvas> ออกจาก DOM — React เป็นเจ้าของ element นี้)
     if (runnerRef.current) Runner.stop(runnerRef.current);
     if (renderRef.current) {
       Render.stop(renderRef.current);
-      if (renderRef.current.canvas) {
-        renderRef.current.canvas.remove();
+      const prevCtx = renderRef.current.context;
+      if (prevCtx && canvasRef.current) {
+        prevCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     }
     if (engineRef.current) {
@@ -423,6 +424,10 @@ export const MoodJar: React.FC<MoodJarProps> = ({
       Render.stop(render);
       Composite.clear(engine.world, false);
       Engine.clear(engine);
+      const ctx = render.context;
+      if (ctx && canvasRef.current) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
     };
   }, [selectedMonth, monthEntriesKey]);
 
