@@ -225,6 +225,14 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthStr);
 
+  // Reset the calendar/jar month to the current month whenever the user enters those tabs
+  useEffect(() => {
+    if (location.pathname === '/' || location.pathname === '/calendar' || location.pathname === '/jar') {
+      const now = new Date();
+      setSelectedMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+    }
+  }, [location.pathname]);
+
   // 1. Session Management: Listen to Auth State and UserProfile
   useEffect(() => {
     let unsubProfileDoc: (() => void) | null = null;

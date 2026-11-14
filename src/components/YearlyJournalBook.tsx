@@ -579,48 +579,6 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
             <span className="hidden sm:inline">พิมพ์สมุด (PDF)</span>
           </button>
 
-          {/* Month Selector Dropdown */}
-          <div className="flex items-center gap-1.5">
-            <label htmlFor="month-select" className="text-xs font-bold text-gray-600 hidden sm:inline">
-              เดือน:
-            </label>
-            <select
-              id="month-select"
-              value={selectedMonth}
-              onChange={(e) => {
-                setSelectedMonth(Number(e.target.value));
-                setIsOpen(false);
-              }}
-              className="px-3 py-1.5 rounded-xl border border-pink-200 bg-white text-xs font-bold text-gray-800 shadow-2xs focus:ring-2 focus:ring-pink-300 focus:outline-none cursor-pointer"
-            >
-              {THAI_MONTHS.map((name, index) => (
-                <option key={name} value={index + 1}>{name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Year Selector Dropdown */}
-          <div className="flex items-center gap-1.5">
-            <label htmlFor="year-select" className="text-xs font-bold text-gray-600 hidden sm:inline">
-              ปี:
-            </label>
-            <select
-              id="year-select"
-              value={selectedYear}
-              onChange={(e) => {
-                setSelectedYear(Number(e.target.value));
-                setIsOpen(false);
-              }}
-              className="px-3 py-1.5 rounded-xl border border-gray-300 bg-white text-xs font-bold text-gray-800 shadow-2xs focus:ring-2 focus:ring-slate-400 focus:outline-none cursor-pointer"
-            >
-              {availableYears.map((y) => (
-                <option key={y} value={y}>
-                  ปี พ.ศ. {y + 543} ({y})
-                </option>
-              ))}
-            </select>
-          </div>
-
           {isOpen ? (
             <button
               type="button"
@@ -975,16 +933,44 @@ export const YearlyJournalBook: React.FC<YearlyJournalBookProps> = ({
                             )}
                           </button>
                         </div>
-                        <h2 className="text-lg sm:text-2xl font-black text-slate-800 mt-1">
-                          {monthName} พ.ศ. {thaiBuddhistYear}
-                        </h2>
                       </div>
                   </div>
 
                   {/* Selected month calendar */}
                   <div className="flex-1 flex flex-col justify-center max-w-xl w-full mx-auto">
                     <div className="flex items-center justify-between mb-3 px-2">
-                      <h3 className="text-lg sm:text-xl font-black text-slate-800">{monthName} {thaiBuddhistYear}</h3>
+                      <div className="flex items-center gap-2">
+                        <select
+                          id="month-select"
+                          aria-label="เลือกเดือน"
+                          value={selectedMonth}
+                          onChange={(e) => {
+                            setSelectedMonth(Number(e.target.value));
+                            setIsOpen(false);
+                          }}
+                          className="px-2 py-1 rounded-lg border border-pink-200 bg-white text-base sm:text-lg font-black text-slate-800 focus:ring-2 focus:ring-pink-300 focus:outline-none cursor-pointer"
+                        >
+                          {THAI_MONTHS.map((name, index) => (
+                            <option key={name} value={index + 1}>{name}</option>
+                          ))}
+                        </select>
+                        <select
+                          id="year-select"
+                          aria-label="เลือกปี"
+                          value={selectedYear}
+                          onChange={(e) => {
+                            setSelectedYear(Number(e.target.value));
+                            setIsOpen(false);
+                          }}
+                          className="px-2 py-1 rounded-lg border border-pink-200 bg-white text-base sm:text-lg font-black text-slate-800 focus:ring-2 focus:ring-pink-300 focus:outline-none cursor-pointer"
+                        >
+                          {availableYears.map((y) => (
+                            <option key={y} value={y}>
+                              พ.ศ. {y + 543}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       <span className="text-xs font-bold text-stone-500">บันทึกแล้ว {monthEntriesCount} วัน</span>
                     </div>
                     <div className="grid grid-cols-7 gap-1.5 sm:gap-2 text-center">
