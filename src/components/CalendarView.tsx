@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { MoodEntry, MOOD_PRESETS } from '../types.ts';
+import { MoodEntry, MOOD_PRESETS, getTodayThai } from '../types.ts';
 import { MoodIcon } from './MoodIcon.tsx';
 import { User } from 'firebase/auth';
 import {
@@ -82,7 +82,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   }, [isMonthPickerOpen]);
 
   const quickYears = useMemo(() => {
-    const currentY = new Date().getFullYear();
+    const currentY = Number(getTodayThai().substring(0, 4));
     const base = [currentY - 2, currentY - 1, currentY, currentY + 1, currentY + 2];
     if (!base.includes(pickerYear)) {
       return [...base, pickerYear].sort((a, b) => a - b);
@@ -117,7 +117,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return acc;
   }, {} as Record<string, MoodEntry>);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getTodayThai();
 
   const weekDayHeaders = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
   const displayTitle = title || (userName ? `ปฏิทินของ${userName}` : 'ปฏิทินบันทึกอารมณ์');
@@ -495,8 +495,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               {THAI_MONTHS.map((m) => {
                 const isSelected = pickerYear === year && m.index === month;
                 const isThisMonth =
-                  pickerYear === new Date().getFullYear() &&
-                  m.index === new Date().getMonth() + 1;
+                  pickerYear === Number(getTodayThai().substring(0, 4)) &&
+                  m.index === Number(getTodayThai().substring(5, 7));
 
                 return (
                   <button

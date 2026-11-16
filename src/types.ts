@@ -458,6 +458,47 @@ export interface UserProfile {
   updatedAt: string;
 }
 
+// To Do item stored at /users/{userId}/todos/{todoId}
+// scope 'daily' = every day, 'today' = only on `date`. completedDates lists YYYY-MM-DD days it was ticked.
+export interface TodoItem {
+  id: string;
+  userId: string;
+  plan: string;
+  scope: 'daily' | 'today';
+  time?: string; // HH:mm, optional
+  date: string; // YYYY-MM-DD the item was created
+  completedDates: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Today's date as YYYY-MM-DD in Thailand time (Asia/Bangkok), independent of the device's timezone
+export function getTodayThai(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+
+// Shift a YYYY-MM-DD string by whole days (calendar arithmetic, no timezone drift)
+export function addDaysToDateString(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  return dt.toISOString().split('T')[0];
+}
+
+// Day of week (0 = Sunday) for a YYYY-MM-DD string
+export function getDayOfWeekOf(dateStr: string): number {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+// Current month as YYYY-MM in Thailand time
+export function getThaiMonthString(): string {
+  return getTodayThai().substring(0, 7);
+}
+
+export function isTodoDoneOn(item: TodoItem, dateStr: string): boolean {
+  return (item.completedDates || []).includes(dateStr);
+}
+
 export interface StreakBadge {
   id: string;
   title: string;

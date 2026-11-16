@@ -14,9 +14,10 @@ import {
   Gamepad2,
   Download,
   Coffee,
+  ListChecks,
 } from 'lucide-react';
 
-export type TabType = 'calendar' | 'entry' | 'jar' | 'analytics' | 'community' | 'games' | 'profile';
+export type TabType = 'calendar' | 'entry' | 'jar' | 'analytics' | 'community' | 'games' | 'profile' | 'todo';
 
 interface NavbarProps {
   currentUser: User;
@@ -50,6 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (p.startsWith('/community')) return 'community';
     if (p.startsWith('/games') || p.startsWith('/game')) return 'games';
     if (p.startsWith('/profile')) return 'profile';
+    if (p.startsWith('/todo')) return 'todo';
     return 'calendar';
   };
 
@@ -78,6 +80,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       label: 'ปฏิทิน',
       shortLabel: 'ปฏิทิน',
       icon: <Calendar className="w-4 h-4" />,
+    },
+    {
+      id: 'todo',
+      label: 'แผนประจำวัน',
+      shortLabel: 'แผน',
+      icon: <ListChecks className="w-4 h-4" />,
     },
     {
       id: 'jar',
@@ -124,6 +132,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       id: 'calendar',
       label: 'ปฏิทิน',
       icon: <Calendar className="w-4 h-4" />,
+    },
+    {
+      id: 'todo',
+      label: 'แผนประจำวัน',
+      icon: <ListChecks className="w-4 h-4" />,
     },
     {
       id: 'jar',

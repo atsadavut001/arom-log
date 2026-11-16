@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { STREAK_BADGES, StreakBadge } from '../types.ts';
+import { STREAK_BADGES, StreakBadge, getTodayThai, getDayOfWeekOf, addDaysToDateString } from '../types.ts';
 import {
   Award,
   Lock,
@@ -46,19 +46,16 @@ export const StreakRewardsModal: React.FC<StreakRewardsModalProps> = ({
   }, []);
 
   // Generate current week's 7 days for the Duolingo flame track
-  const today = new Date();
-  const currentDayOfWeek = today.getDay(); // 0 is Sunday
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - currentDayOfWeek);
+  const todayStr = getTodayThai();
+  const currentDayOfWeek = getDayOfWeekOf(todayStr); // 0 is Sunday
+  const startOfWeekStr = addDaysToDateString(todayStr, -currentDayOfWeek);
 
   const weekDays = Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date(startOfWeek);
-    d.setDate(startOfWeek.getDate() + i);
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = addDaysToDateString(startOfWeekStr, i);
     const dayNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
-    const isToday = dateStr === today.toISOString().split('T')[0];
+    const isToday = dateStr === todayStr;
     const isRecorded = recordedDates.includes(dateStr);
-    const isPast = d <= today;
+    const isPast = dateStr <= todayStr;
 
     return {
       dayName: dayNames[i],

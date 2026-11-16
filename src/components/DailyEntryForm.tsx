@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MoodPreset, MoodCategory, MoodEntry, DEFAULT_TAGS, MOOD_PRESETS, ScaleMoodLevel } from '../types.ts';
+import { MoodPreset, MoodCategory, MoodEntry, DEFAULT_TAGS, MOOD_PRESETS, ScaleMoodLevel, getTodayThai } from '../types.ts';
 import { MoodSelector } from './MoodSelector.tsx';
 import { db, handleFirestoreError, OperationType } from '../firebase.ts';
 import { doc, setDoc } from 'firebase/firestore';
@@ -231,7 +231,7 @@ export const DailyEntryForm: React.FC<DailyEntryFormProps> = ({
     }
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getTodayThai();
   const isToday = selectedDate === todayStr;
 
   return (

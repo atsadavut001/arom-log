@@ -22,7 +22,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { auth, db } from './firebase.ts';
-import { MoodEntry, UserProfile, isLegacyDefaultBio } from './types.ts';
+import { MoodEntry, UserProfile, isLegacyDefaultBio, getTodayThai, getThaiMonthString, addDaysToDateString } from './types.ts';
 import { Navbar, TabType } from './components/Navbar.tsx';
 import { DailyEntryForm } from './components/DailyEntryForm.tsx';
 import { MoodJar } from './components/MoodJar.tsx';
@@ -31,6 +31,8 @@ import { AnalyticsView } from './components/AnalyticsView.tsx';
 import { CommunityView } from './components/CommunityView.tsx';
 import { UserProfileView } from './components/UserProfileView.tsx';
 import { GamesView } from './components/GamesView.tsx';
+import { TodoView } from './components/TodoView.tsx';
+import { TodoStatsView } from './components/TodoStatsView.tsx';
 import { StreakRewardsModal } from './components/StreakRewardsModal.tsx';
 import { InstallPwaModal } from './components/InstallPwaModal.tsx';
 import { SupportModal } from './components/SupportModal.tsx';
@@ -57,7 +59,7 @@ function DailyEntryRouteWrapper({
   const effectiveDate =
     date && /^\d{4}-\d{2}-\d{2}$/.test(date)
       ? date
-      : selectedDate || new Date().toISOString().split('T')[0];
+      : selectedDate || getTodayThai();
 
   const handleDateChange = (newDate: string) => {
     onDateChange(newDate);
@@ -219,8 +221,8 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const currentMonthStr = todayStr.substring(0, 7);
+  const todayStr = getTodayThai();
+  const currentMonthStr = getThaiMonthString();
 
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthStr);
@@ -228,8 +230,7 @@ export default function App() {
   // Reset the calendar/jar month to the current month whenever the user enters those tabs
   useEffect(() => {
     if (location.pathname === '/' || location.pathname === '/calendar' || location.pathname === '/jar') {
-      const now = new Date();
-      setSelectedMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+      setSelectedMonth(getThaiMonthString());
     }
   }, [location.pathname]);
 
@@ -366,29 +367,18 @@ export default function App() {
 
     const uniqueDates = Array.from(new Set(allEntries.map((e) => e.date))).sort();
 
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
-
-    const yesterdayDate = new Date(todayDate);
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-
-    const todayIso = todayDate.toISOString().split('T')[0];
-    const yesterdayIso = yesterdayDate.toISOString().split('T')[0];
+    const todayIso = getTodayThai();
+    const yesterdayIso = addDaysToDateString(todayIso, -1);
 
     const hasToday = uniqueDates.includes(todayIso);
     const hasYesterday = uniqueDates.includes(yesterdayIso);
 
     let currentStreak = 0;
     if (hasToday || hasYesterday) {
-      let checkDate = hasToday ? new Date(todayDate) : new Date(yesterdayDate);
-      while (true) {
-        const checkIso = checkDate.toISOString().split('T')[0];
-        if (uniqueDates.includes(checkIso)) {
-          currentStreak++;
-          checkDate.setDate(checkDate.getDate() - 1);
-        } else {
-          break;
-        }
+      let checkIso = hasToday ? todayIso : yesterdayIso;
+      while (uniqueDates.includes(checkIso)) {
+        currentStreak++;
+        checkIso = addDaysToDateString(checkIso, -1);
       }
     }
 
@@ -619,11 +609,7 @@ export default function App() {
             <Route
               path="/analytics"
               element={
-                <AnalyticsView
-                  entries={entries}
-                  selectedMonth={selectedMonth}
-                  onMonthChange={setSelectedMonth}
-                />
+                <AnalyticsView entries={entries} />
               }
             />
             <Route
@@ -636,6 +622,24 @@ export default function App() {
                   onSelectDateForEdit={handleSelectDateForEdit}
                   selectedMonth={selectedMonth}
                   onMonthChange={setSelectedMonth}
+                />
+              }
+            />
+            <Route
+              path="/todo"
+              element={
+                <TodoView
+                  currentUser={currentUser}
+                  onOpenStats={() => navigate('/todo/stats')}
+                />
+              }
+            />
+            <Route
+              path="/todo/stats"
+              element={
+                <TodoStatsView
+                  currentUser={currentUser}
+                  onBack={() => navigate('/todo')}
                 />
               }
             />

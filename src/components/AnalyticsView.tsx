@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MoodEntry, MOOD_PRESETS } from '../types.ts';
+import { MoodEntry, MOOD_PRESETS, getTodayThai, getThaiMonthString, addDaysToDateString } from '../types.ts';
 import { generateMoodInsight, isGeminiConfigured } from '../gemini.ts';
 import {
   TrendingUp,
@@ -12,20 +12,34 @@ import {
   Zap,
   Loader2,
   ShieldAlert,
-  RefreshCw
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface AnalyticsViewProps {
   entries: MoodEntry[];
-  selectedMonth: string; // YYYY-MM
-  onMonthChange: (month: string) => void;
 }
+
+const ANALYTICS_THAI_MONTHS = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+];
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   entries,
-  selectedMonth,
 }) => {
+  // Each visit starts at the current Thai month; the user picks another month here
+  const [selectedMonth, setSelectedMonth] = useState<string>(getThaiMonthString);
   const monthEntries = entries.filter((e) => e.date.startsWith(selectedMonth));
+
+  const shiftMonth = (delta: number) => {
+    const [y, m] = selectedMonth.split('-').map(Number);
+    const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+    setSelectedMonth(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+  };
+  const [selYear, selMonthNum] = selectedMonth.split('-').map(Number);
+  const isCurrentMonth = selectedMonth === getThaiMonthString();
 
   // Mood Insight state (Gemini)
   const [insightText, setInsightText] = useState<string>('');
@@ -122,25 +136,15 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   let streak = 0;
   if (sortedDates.length > 0) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const checkDate = new Date(today);
-    // Check if recorded today or yesterday to continue streak
-    const todayStr = checkDate.toISOString().split('T')[0];
-    checkDate.setDate(checkDate.getDate() - 1);
-    const yesterdayStr = checkDate.toISOString().split('T')[0];
+    // Check if recorded today or yesterday (Thai time) to continue streak
+    const todayStr = getTodayThai();
+    const yesterdayStr = addDaysToDateString(todayStr, -1);
 
     if (sortedDates.includes(todayStr) || sortedDates.includes(yesterdayStr)) {
-      let currentDate = sortedDates.includes(todayStr) ? new Date(today) : checkDate;
-      while (true) {
-        const dStr = currentDate.toISOString().split('T')[0];
-        if (sortedDates.includes(dStr)) {
-          streak++;
-          currentDate.setDate(currentDate.getDate() - 1);
-        } else {
-          break;
-        }
+      let dStr = sortedDates.includes(todayStr) ? todayStr : yesterdayStr;
+      while (sortedDates.includes(dStr)) {
+        streak++;
+        dStr = addDaysToDateString(dStr, -1);
       }
     }
   }
@@ -185,6 +189,39 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <p className="text-xs md:text-sm text-gray-500 mt-0.5">
           ทำความเข้าใจแบบแผนอารมณ์ ค้นหากิจกรรมที่สร้างพลังบวก และปัจจัยที่มักก่อให้เกิดความเครียด
         </p>
+
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => shiftMonth(-1)}
+            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition cursor-pointer"
+            title="เดือนก่อนหน้า"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-gray-900 text-sm sm:text-base">
+              {ANALYTICS_THAI_MONTHS[selMonthNum - 1]} {selYear + 543}
+            </span>
+            {!isCurrentMonth && (
+              <button
+                type="button"
+                onClick={() => setSelectedMonth(getThaiMonthString())}
+                className="text-xs font-bold text-green-700 hover:underline cursor-pointer"
+              >
+                เดือนปัจจุบัน
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => shiftMonth(1)}
+            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition cursor-pointer"
+            title="เดือนถัดไป"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {monthEntries.length === 0 ? (
